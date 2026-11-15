@@ -38,7 +38,7 @@ let dest = join(here, "bio-agent.html");
 if (target === "web") {
   const runtime = readFileSync(join(here, "web", "runtime.js"), "utf8").replaceAll("</", "<\\/");
   out = out
-    .replace("chạy bằng tài khoản Claude của bạn.", "chạy bằng Claude.")
+    .replace("chạy bằng tài khoản Claude của bạn.", "chạy bằng AI (Claude hoặc Gemini).")
     .replace("<script>\nconst SK", () => `<script>\n${runtime}\n</script>\n<script>\nconst SK`);
   if (!out.includes("window.claude = { use")) throw new Error("không chèn được runtime.js");
   out =
