@@ -44,6 +44,8 @@ if (target === "web") {
   out =
     '<!doctype html><html lang="vi"><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">' +
+    // Reset mà claude.ai tự chèn cho artifact; thiếu nó thì [hidden] không ẩn được phần tử có display riêng.
+    "<style>body{margin:0}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>" +
     "</head><body>\n" + out + "</body></html>\n";
   mkdirSync(join(here, "web", "public"), { recursive: true });
   dest = join(here, "web", "public", "index.html");
