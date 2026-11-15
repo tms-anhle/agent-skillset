@@ -295,6 +295,7 @@ Khác biệt khi chạy trong trang web:
   · Câu bổ sung dự án (collect-info.md §5 mục 2) → một câu "type":"projects", "required": false, VD question "Bạn muốn kể thêm 1–2 dự án nổi bật không?". Không cần options hay placeholder: trang tự hiện form từng mục (tên, thời gian, vị trí, quy mô team, sản phẩm, việc bạn làm, công nghệ, kết quả). Không hỏi "có muốn thêm không" rồi chờ lượt sau. Câu trả lời trả về dạng "Dự án 1: Tên: … · Thời gian: … ".
   · Câu bắt buộc (5 thông tin bắt buộc còn thiếu) đặt "required": true và xếp đầu form. Email đã có họ tên → câu "choice" với email đề xuất là lựa chọn recommended; member tự ghi email khác ở ô bên dưới.
   · Tối đa 6 câu mỗi form. "choice": 2–4 lựa chọn thật; lựa chọn đề xuất đặt đầu với "recommended": true (không viết "(Đề xuất)" trong label).
+  · "header" là chủ đề dễ hiểu, không lấy nhãn nội bộ của skill: câu yêu cầu theo cấp (checklist.md, header "Chuẩn [cấp]") → "Việc đã làm"; câu mức match → "Mức khớp JD"; câu role → "Vị trí".
   · Lời lẽ: câu hỏi một câu, ≤ 20 từ, tiếng Việt đời thường, gọi member là "bạn". "label" là câu member trả lời, ≤ 8 từ. "description" ≤ 15 từ, nói căn cứ hoặc lựa chọn đó sẽ làm bio thay đổi thế nào. "hint" chỉ dùng khi cần giải thích vì sao hỏi. "header" ≤ 12 ký tự, là tên chủ đề (Email, Kinh nghiệm, Dự án...).
   · Không dùng từ nội bộ với member: placeholder, field, checklist, cấp, JD adjustment, match, cross-role, companion, khối nhắc. Nói "vị trí" thay cho role, "công nghệ" thay cho tech stack khi đứng một mình, "mức độ khớp với JD" thay cho mức match.
 - Câu hỏi form có dạng {"id":"q1","type":"choice|text|longtext|projects","header":"Email","question":"...","hint":"(tùy chọn)","required":true|false,"multi":false,"placeholder":"ví dụ (text/longtext)","otherHint":"gợi ý cho ô trả lời khác (choice, tùy chọn)","options":[{"label":"...","description":"(tùy chọn)","recommended":true}]}.
@@ -479,13 +480,16 @@ const PF=[
 const pjFilled=it=>PF.some(f=>(it[f.k]||'').trim());
 const pjMissing=it=>pjFilled(it)?PF.filter(f=>f.req&&!(it[f.k]||'').trim()).map(f=>(f.s||f.l).toLowerCase()):[];
 const pjText=items=>items.filter(pjFilled).map((it,i)=>`Dự án ${i+1}: `+PF.filter(f=>(it[f.k]||'').trim()).map(f=>`${f.l}: ${it[f.k].trim()}`).join(' · ')).join('\n  ');
-const TERMINAL_OPT=/\b(other)\b|tin nhắn sau|gõ vào ô|gõ ở ô|tự gõ|để trống|điền sau|^bỏ qua$|^khác$/i;
+const TERMINAL_OPT=/\b(other)\b|tin nhắn sau|gõ vào ô|gõ ở ô|tự gõ|để trống|điền sau|^bỏ qua$|(^|\s)khác$/i; // "Email khác", "Vị trí khác": đã có ô trả lời khác
+// Tên chủ đề nội bộ của skill → tên dễ hiểu với member
+const HEADER_MAP=[[/^chuẩn\s*(junior|middle|senior)$/i,'Việc đã làm'],[/^mức\s*match$|^match$/i,'Mức khớp JD'],[/^role$/i,'Vị trí'],[/^bắt buộc$/i,'Thông tin cần có']];
 const NONE_OPT=/^(chưa|không)\b.*\b(nào|gì)\b/i; // lựa chọn "không chọn gì" của câu chọn nhiều
 function cleanQs(qs,key){return (qs||[]).map(q=>{q={...q};
   // Lưới an toàn: câu "kể thêm dự án" ở form bổ sung mà model trả về dạng ô chữ → đổi sang form từng mục.
   if(key==='form'&&q.type!=='projects'&&/dự án/i.test((q.header||'')+' '+(q.question||''))&&/(kể|thêm|bổ sung|nhập)/i.test(q.question||'')&&(q.type==='longtext'||(q.options||[]).some(o=>/tin nhắn sau|nhập ở/i.test(o.label||''))))q={...q,type:'projects',options:undefined};
   if(q.options){q.options=q.options.filter(o=>{const l=String(o.label||'').trim();return !TERMINAL_OPT.test(l)&&!(q.multi&&NONE_OPT.test(l))});if(!q.options.length&&q.type!=='longtext')q.type='text'}
   for(const f of ['question','hint'])if(q[f])q[f]=String(q[f]).replace(/\s*(ở|vào)\s+(ô\s+)?Other\b/gi,' ở ô bên dưới');
+  if(q.header)for(const [re,to] of HEADER_MAP)if(re.test(String(q.header).trim()))q.header=to;
   return q})}
 function initForm(key,qs){qs=cleanQs(qs,key);const v={};for(const q of qs){v[q.id]={sel:qtype(q)==='choice'?(q.options||[]).filter(o=>o.recommended).map(o=>o.label).slice(0,q.multi?4:1):[],other:'',items:[{}]}}S.ans[key]={qs,v}}
 // Câu chọn ở bước vị trí và mức khớp JD luôn cần một câu trả lời, dù model có đánh dấu required hay không.
@@ -607,7 +611,7 @@ function leftHTML(){
   if(s===2&&S.analysis){h+=ag('Trước khi đi tiếp, mình muốn chắc chắn về vị trí bạn muốn ghi trong bio.');h+=`<div class="card">${formHTML('role')}</div>`}
   if(s===3){
     if(S.missingAsk){h+=ag(S.missingAsk);h+=`<div class="card"><textarea id="missing" placeholder="Gõ phần còn thiếu vào đây…">${esc(S.missingText)}</textarea></div>`;return h}
-    h+=ag('Nếu bio này để gửi một khách cụ thể, dán JD (mô tả công việc) của khách vào đây. Mình sẽ nhấn vào đúng điều khách cần và chỉ rõ chỗ nào đã chỉnh theo JD. Không có JD thì bấm “Bỏ qua”.');
+    h+=ag('Nếu bio này để gửi một khách cụ thể, dán JD (mô tả công việc) của khách vào đây. Mình sẽ nhấn vào đúng điều khách cần và chỉ rõ chỗ nào đã chỉnh theo JD. Không có JD thì bấm “Bỏ qua, không có JD”.');
     h+=`<div class="card"><div class="q"><div class="ql">JD của khách<small>Dán nguyên văn, tiếng Việt, Anh hay Nhật đều được.</small></div><textarea id="jd" placeholder="Dán nội dung JD vào đây…">${esc(S.jd)}</textarea></div></div>`;
   }
   if(s===4&&S.match){
