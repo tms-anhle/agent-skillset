@@ -7,3 +7,5 @@ docs/demo/
 # Kết quả chạy eval (transcript, report)
 evals/*/results/
 __pycache__/
+# Trang Bio Agent đã build (sinh từ template + skill)
+apps/bio-agent/bio-agent.html
