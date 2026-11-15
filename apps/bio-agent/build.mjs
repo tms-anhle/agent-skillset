@@ -1,4 +1,4 @@
-// Đóng gói skill generate-short-bio vào trang Bio Agent.
+// Đóng gói skill generate-short-bio vào trang Short Bio Agent.
 //
 //   node apps/bio-agent/build.mjs           → apps/bio-agent/bio-agent.html (artifact claude.ai)
 //   node apps/bio-agent/build.mjs web       → apps/bio-agent/web/public/index.html (Vercel)

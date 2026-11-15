@@ -1,4 +1,4 @@
-/* Bio Agent web runtime: thay window.claude của artifact claude.ai bằng API của server.
+/* Short Bio Agent web runtime: thay window.claude của artifact claude.ai bằng API của server.
    - sample  → POST /api/sample (stream NDJSON), gửi kèm mã truy cập
    - user    → người dùng ẩn danh trên máy này
    - db      → lịch sử bio trong localStorage của trình duyệt
@@ -12,14 +12,14 @@
   };
 
   window.BIO_ERR = {
-    need_code: "Bạn nhập mã truy cập để dùng Bio Agent nhé.",
+    need_code: "Bạn nhập mã truy cập để dùng Short Bio Agent nhé.",
     bad_code: "Mã truy cập không đúng hoặc đã bị thu hồi. Bạn nhập lại mã nhé.",
     no_codes_configured: "Máy chủ chưa có mã truy cập nào (biến ACCESS_CODES trống hoặc chưa redeploy). Báo người quản trị nhé.",
     quota: "Mã truy cập này đã hết lượt hôm nay. Thử lại vào ngày mai hoặc liên hệ người cấp mã.",
     too_large: "CV hoặc JD quá dài. Hãy rút gọn rồi thử lại.",
     missing_key: "Máy chủ chưa có API key (ANTHROPIC_API_KEY hoặc GEMINI_API_KEY). Báo người quản trị nhé.",
     bad_key: "API key trên máy chủ không hợp lệ hoặc hết hạn mức. Báo người quản trị nhé.",
-    server_error: "Máy chủ Bio Agent gặp lỗi. Thử lại sau ít phút."
+    server_error: "Máy chủ Short Bio Agent gặp lỗi. Thử lại sau ít phút."
   };
   function fail(code) { var e = new Error(code); e.code = code; return e; }
 
@@ -33,11 +33,11 @@
       gate.style.cssText = "position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:16px;background:rgba(16,19,24,.55)";
       gate.innerHTML =
         '<form class="card" style="width:min(420px,100%);gap:14px">' +
-        '<div class="sh"><span class="k">Bio Agent</span><h2>Nhập mã truy cập</h2></div>' +
-        '<p style="color:var(--muted)">Mã do người quản lý Bio Agent của tổ chức bạn cấp.</p>' +
+        '<div class="sh"><span class="k">Short Bio Agent</span><h2>Nhập mã truy cập</h2></div>' +
+        '<p style="color:var(--muted)">Mã do người quản lý Short Bio Agent của tổ chức bạn cấp.</p>' +
         '<input class="tx" name="code" autocomplete="off" spellcheck="false" placeholder="Mã truy cập" aria-label="Mã truy cập" required>' +
         '<p data-msg style="color:var(--danger);font-size:.84rem" hidden></p>' +
-        '<button class="btn" type="submit">Vào Bio Agent</button></form>';
+        '<button class="btn" type="submit">Vào Short Bio Agent</button></form>';
       gate.querySelector("form").addEventListener("submit", function (ev) {
         ev.preventDefault();
         var input = gate.querySelector("input"), btn = gate.querySelector("button");

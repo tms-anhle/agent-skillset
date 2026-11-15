@@ -1,4 +1,4 @@
-# Bio Agent
+# Short Bio Agent
 
 Giao diện web cho skill [`generate-short-bio`](../../generate-short-bio/). Cùng một giao diện (`template.html`) chạy theo hai cách:
 
@@ -38,7 +38,7 @@ Link công khai không đủ: tài khoản ngoài tổ chức mở được tran
 
 ## Bản web trên Vercel
 
-1. **Anthropic Console:** tạo API key riêng cho Bio Agent, đặt giới hạn chi tiêu theo tháng cho workspace của key.
+1. **Anthropic Console:** tạo API key riêng cho Short Bio Agent, đặt giới hạn chi tiêu theo tháng cho workspace của key.
 2. **Vercel → New Project:** chọn repo, đặt **Root Directory** là `apps/bio-agent/web`, Framework Preset `Other`. Giữ bật tùy chọn cho phép đọc file ngoài Root Directory (build cần thư mục `generate-short-bio/`).
 3. **Tùy chọn, Storage → Upstash Redis (Marketplace):** gắn vào project để giới hạn số bio mỗi mã mỗi ngày; Vercel tự thêm `KV_REST_API_URL`, `KV_REST_API_TOKEN`. Không gắn thì không giới hạn lượt, chỉ còn hạn mức chi tiêu đặt trên Anthropic Console.
 4. **Settings → Environment Variables:** thêm các biến trong `web/.env.example`:

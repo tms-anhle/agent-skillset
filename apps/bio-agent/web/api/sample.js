@@ -1,4 +1,4 @@
-// Gọi AI cho trang Bio Agent bằng key của server, stream kết quả về dạng NDJSON:
+// Gọi AI cho trang Short Bio Agent bằng key của server, stream kết quả về dạng NDJSON:
 //   {"d":"đoạn text"} ... {"done":true,"stop":"end_turn","text":"toàn bộ câu trả lời"}
 //   hoặc {"error":"mã lỗi","status":...,"type":...} khi lỗi giữa chừng.
 //

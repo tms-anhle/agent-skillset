@@ -1,6 +1,6 @@
 # agent-skillset — Project Context
 
-Repo chứa một skill là `generate-short-bio`, nằm trong thư mục cùng tên `generate-short-bio/` (`SKILL.md`, `references/`), đúng spec Agent Skills (tên thư mục = `name`). Test case nằm ngoài thư mục skill, ở `evals/generate-short-bio/`. README, AGENTS.md, LICENSE, `install.sh`, `evals/` và `docs/` (tài liệu cho người) chỉ đặt ở gốc repo. Thêm skill sau này thì tạo thư mục skill cùng cấp và `evals/<tên skill>/`. Giao diện web Bio Agent (artifact claude.ai và bản web Vercel dùng API key công ty, cùng chạy skill này) nằm ở `apps/bio-agent/`, xem README trong đó; `template.html` dài hơn 200 dòng vì là một trang HTML trọn gói. Sửa skill xong thì build lại trang (`node apps/bio-agent/build.mjs [web]`).
+Repo chứa một skill là `generate-short-bio`, nằm trong thư mục cùng tên `generate-short-bio/` (`SKILL.md`, `references/`), đúng spec Agent Skills (tên thư mục = `name`). Test case nằm ngoài thư mục skill, ở `evals/generate-short-bio/`. README, AGENTS.md, LICENSE, `install.sh`, `evals/` và `docs/` (tài liệu cho người) chỉ đặt ở gốc repo. Thêm skill sau này thì tạo thư mục skill cùng cấp và `evals/<tên skill>/`. Giao diện web Short Bio Agent (artifact claude.ai và bản web Vercel dùng API key công ty, cùng chạy skill này) nằm ở `apps/bio-agent/`, xem README trong đó; `template.html` dài hơn 200 dòng vì là một trang HTML trọn gói. Sửa skill xong thì build lại trang (`node apps/bio-agent/build.mjs [web]`).
 
 ## Quy ước chung
 

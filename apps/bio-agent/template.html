@@ -1,4 +1,4 @@
-<title>Bio Agent</title>
+<title>Short Bio Agent</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=JetBrains+Mono:wght@400&display=swap">
@@ -208,7 +208,7 @@ mark.y{background:var(--y);color:var(--y-fg)}mark.g{background:var(--g);color:va
 <div class="wrap">
   <header class="top">
     <div class="logo"><svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 3H6.5A2.5 2.5 0 0 0 4 5.5v13A2.5 2.5 0 0 0 6.5 21h11a2.5 2.5 0 0 0 2.5-2.5V10.5"/><circle cx="9" cy="9.5" r="2"/><path d="M8 14h8M8 17.5h5"/><path class="spark" fill="var(--spark)" stroke="none" d="M19 1.6l1 2.4 2.4 1-2.4 1-1 2.4-1-2.4-2.4-1 2.4-1z"/></svg></div>
-    <div><h1>Bio Agent</h1><p>Từ CV đến hồ sơ năng lực gửi khách, chỉ sau vài câu hỏi.</p></div>
+    <div><h1>Short Bio Agent</h1><p>Từ CV đến hồ sơ năng lực gửi khách, chỉ sau vài câu hỏi.</p></div>
     <div class="sp"></div>
     <div class="who" id="who"></div>
     <div class="hist"><button type="button" class="btn ghost sm" id="histBtn" hidden>Bio đã lưu</button><div class="menu" id="histMenu" hidden></div></div>
@@ -285,7 +285,7 @@ let ctl=null;
 setTimeout(()=>{if(!cap.sample)render()},11000);
 
 /* ---------------- prompts ---------------- */
-const PRE=`Bạn là Bio Agent, chạy skill generate-short-bio của Tomosia bên trong một trang web. SKILL.md và các file reference đính kèm bên dưới là quy tắc bắt buộc; làm đúng chúng.
+const PRE=`Bạn là Short Bio Agent, chạy skill generate-short-bio của Tomosia bên trong một trang web. SKILL.md và các file reference đính kèm bên dưới là quy tắc bắt buộc; làm đúng chúng.
 
 Khác biệt khi chạy trong trang web:
 - Không có AskUserQuestion, công cụ, file system, WebFetch hay skill humanizer. Trang đã tự đọc file CV và đưa text cho bạn. Tự rà văn phong theo write-bio.md thay cho humanizer.
@@ -739,7 +739,7 @@ function render(){
   $('#nav').innerHTML=navHTML();
   const me=cap.me;$('#who').innerHTML=me&&me.name?`<img src="${esc(me.avatarUrl)}" alt=""><span>${esc(me.name)}</span>`:'';
   const VIEW='https://claude.ai/artifact/VHojMscYJggx2SPtLPjdzT';
-  $('#banner').innerHTML=cap.sample?'':!window.claude?.use||cap.ready?`<div class="banner warn"><span>Chưa kết nối được Claude. Trang phải mở trong giao diện claude.ai (đã đăng nhập), không mở trực tiếp file hay link host riêng. <a href="${VIEW}" target="_blank" rel="noopener">Mở Bio Agent trong claude.ai</a>. Nếu đã mở đúng link mà vẫn thấy thông báo này: đăng nhập lại claude.ai, tải lại trang, hoặc tài khoản của bạn chưa được dùng tính năng gọi Claude trong artifact.</span></div>`:`<div class="banner warn">Đang kết nối Claude…</div>`;
+  $('#banner').innerHTML=cap.sample?'':!window.claude?.use||cap.ready?`<div class="banner warn"><span>Chưa kết nối được Claude. Trang phải mở trong giao diện claude.ai (đã đăng nhập), không mở trực tiếp file hay link host riêng. <a href="${VIEW}" target="_blank" rel="noopener">Mở Short Bio Agent trong claude.ai</a>. Nếu đã mở đúng link mà vẫn thấy thông báo này: đăng nhập lại claude.ai, tải lại trang, hoặc tài khoản của bạn chưa được dùng tính năng gọi Claude trong artifact.</span></div>`:`<div class="banner warn">Đang kết nối Claude…</div>`;
   const drop=$('#drop');if(drop){drop.ondragover=e=>{e.preventDefault();drop.classList.add('over')};drop.ondragleave=()=>drop.classList.remove('over');drop.ondrop=e=>{e.preventDefault();drop.classList.remove('over');takeFile(e.dataTransfer.files[0])};$('#cvfile').onchange=e=>takeFile(e.target.files[0])}
 }
 
