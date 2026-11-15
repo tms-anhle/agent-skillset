@@ -278,6 +278,9 @@ Khác biệt khi chạy trong trang web:
   · Mỗi câu là một thẻ trong form. Có 3 loại: "choice" (bấm chọn, luôn kèm ô tự ghi câu trả lời khác), "text" (một ô nhập ngắn), "longtext" (ô nhập nhiều dòng).
   · Thông tin chỉ gõ tay được (họ tên, email khi không đề xuất được, công nghệ đã dùng, số năm từng công nghệ, ngày sinh, mô tả dự án) → câu "text" hoặc "longtext", MỖI thông tin một câu, "placeholder" là một ví dụ đúng định dạng (dữ liệu mẫu, không lấy của member). Không gộp nhiều thông tin vào một câu.
   · Không bao giờ tạo lựa chọn mô phỏng thao tác gõ hoặc bỏ qua: "Gõ vào ô Other", "Gửi ở tin nhắn sau", "Nhập ở tin nhắn sau", "Mình gõ ở ô bên dưới", "Khác", "Để trống, mình điền sau", "Bỏ qua". Câu không bắt buộc thì đặt "required": false, member để trống tức là bỏ qua.
+  · Mọi lựa chọn mang nghĩa "mình sẽ tự gõ" đều bỏ, dù viết cách nào (VD "Có, nhưng chỉ ghi công cụ mình gõ ở Other", "Giữ [X], gõ thêm stack còn thiếu ở Other", "Có, paste ở tin nhắn sau"): ô trả lời khác bên dưới mỗi câu đã làm việc đó. Ý cần gõ thì chuyển vào "otherHint" (VD "Hoặc ghi các công cụ AI bạn dùng, VD Claude, Cursor"). Câu hỏi và hint không nhắc "Other", "ô Other", "tin nhắn sau"; cần thì nói "ô bên dưới".
+  · Câu chọn nhiều ("multi": true) không có lựa chọn kiểu "không chọn gì" (VD "Chưa làm việc nào trong số này", "Không có mục nào"): member không chọn mục nào tức là chưa có. Đặt "required": false và nói điều đó trong hint nếu cần (VD "Chưa làm việc nào thì để trống").
+  · Chuyển các mẫu câu trong references sang form như sau: câu AI (collect-info.md §5 mục 1b) → choice "Thêm 2 dòng AI" (recommended) · "Không thêm", otherHint gợi ý ghi công cụ riêng; câu gộp họ tên / email / tech stack (§3) → mỗi thông tin một câu text bắt buộc; câu ngày sinh, số năm skill phụ → text không bắt buộc; câu role lệch stack (§6) → choice đổi vị trí (recommended) · giữ vị trí hiện tại, otherHint "Hoặc ghi công nghệ còn thiếu"; câu việc đã làm ở dự án (projects.md) → choice multi, otherHint "Việc khác bạn đã làm"; câu mô tả dự án còn thiếu ý → longtext, placeholder là câu mẫu theo đúng ý thiếu.
   · Câu bổ sung dự án (collect-info.md §5 mục 2) → một câu "longtext" không bắt buộc, VD question "Bạn muốn kể thêm 1–2 dự án nổi bật không?", placeholder theo mẫu tên · thời gian · vị trí · làm gì · công nghệ. Không hỏi "có muốn thêm không" rồi chờ lượt sau.
   · Câu bắt buộc (5 thông tin bắt buộc còn thiếu) đặt "required": true và xếp đầu form. Email đã có họ tên → câu "choice" với email đề xuất là lựa chọn recommended; member tự ghi email khác ở ô bên dưới.
   · Tối đa 6 câu mỗi form. "choice": 2–4 lựa chọn thật; lựa chọn đề xuất đặt đầu với "recommended": true (không viết "(Đề xuất)" trong label).
@@ -296,7 +299,7 @@ const ctx=()=>{
   if(cap.me&&(cap.me.name||cap.me.email))s+=`\nTài khoản claude.ai của người đang dùng: ${cap.me.name||'?'} · ${cap.me.email||'?'} (chỉ để tham khảo đề xuất họ tên / email; CV và thông tin member gõ được ưu tiên).\n`;
   return s;
 };
-const answersText=keys=>keys.map(k=>{const a=S.ans[k];if(!a)return '';return `\n[Câu trả lời ${k}]\n`+a.qs.map(q=>{const r=a.v[q.id]||{sel:[],other:''};const o=r.other.trim();if(qtype(q)!=='choice')return `- (${q.header||''}) ${q.question}\n  Trả lời: ${o||'(để trống, bỏ qua)'}`;return `- (${q.header||''}) ${q.question}\n  Chọn: ${r.sel.length?r.sel.join(' | '):'(không chọn)'}${o?`\n  Tự ghi: ${o}`:''}`}).join('\n')}).join('');
+const answersText=keys=>keys.map(k=>{const a=S.ans[k];if(!a)return '';return `\n[Câu trả lời ${k}]\n`+a.qs.map(q=>{const r=a.v[q.id]||{sel:[],other:''};const o=r.other.trim();if(qtype(q)!=='choice')return `- (${q.header||''}) ${q.question}\n  Trả lời: ${o||'(để trống, bỏ qua)'}`;return `- (${q.header||''}) ${q.question}\n  Chọn: ${r.sel.length?r.sel.join(' | '):q.multi?'(không chọn mục nào: member chưa có / chưa làm các mục này)':'(không chọn)'}${o?`\n  Tự ghi: ${o}`:''}`}).join('\n')}).join('');
 const profileText=()=>S.profile?`\n\n===== PROFILE ĐÃ CHỐT (JSON) =====\n${JSON.stringify(S.profile)}`:'';
 const jdText=()=>S.jd?`\n\n===== JD KHÁCH =====\n${S.jd.slice(0,30000)}`:'\n\n(Không có JD.)';
 
@@ -452,7 +455,13 @@ function collectProjects(){
 
 /* ---------------- forms ---------------- */
 const qtype=q=>q.type==='text'||q.type==='longtext'?q.type:(q.options||[]).length?'choice':'text';
-function initForm(key,qs){const v={};for(const q of qs){v[q.id]={sel:qtype(q)==='choice'?(q.options||[]).filter(o=>o.recommended).map(o=>o.label).slice(0,q.multi?4:1):[],other:''}}S.ans[key]={qs,v}}
+const TERMINAL_OPT=/\b(other)\b|tin nhắn sau|gõ vào ô|gõ ở ô|tự gõ|để trống|điền sau|^bỏ qua$|^khác$/i;
+const NONE_OPT=/^(chưa|không)\b.*\b(nào|gì)\b/i; // lựa chọn "không chọn gì" của câu chọn nhiều
+function cleanQs(qs){return (qs||[]).map(q=>{q={...q};
+  if(q.options){q.options=q.options.filter(o=>{const l=String(o.label||'').trim();return !TERMINAL_OPT.test(l)&&!(q.multi&&NONE_OPT.test(l))});if(!q.options.length&&q.type!=='longtext')q.type='text'}
+  for(const f of ['question','hint'])if(q[f])q[f]=String(q[f]).replace(/\s*(ở|vào)\s+(ô\s+)?Other\b/gi,' ở ô bên dưới');
+  return q})}
+function initForm(key,qs){qs=cleanQs(qs);const v={};for(const q of qs){v[q.id]={sel:qtype(q)==='choice'?(q.options||[]).filter(o=>o.recommended).map(o=>o.label).slice(0,q.multi?4:1):[],other:''}}S.ans[key]={qs,v}}
 function validForms(keys){
   const miss=[];for(const k of keys){const a=S.ans[k];if(!a)continue;for(const q of a.qs){const r=a.v[q.id];if(q.required&&!(r.sel.length||r.other.trim()))miss.push(k+'/'+q.id)}}
   const M='Bạn trả lời giúp các câu có dấu * nhé.';S.invalid=miss.length?miss:null;if(miss.length){S.error=M;S.retry=null;render()}else if(S.error===M)S.error=null;return !miss.length;
