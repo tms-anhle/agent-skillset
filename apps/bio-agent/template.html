@@ -107,6 +107,15 @@ button{font:inherit;color:inherit;cursor:pointer}
 .pjnote{color:var(--dim);font-size:.76rem}
 .qerr{color:var(--danger);font-size:.78rem;font-weight:600}
 .skipjd{justify-self:start}
+.mode{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border:1px solid var(--line);border-radius:12px;background:var(--sunk)}
+.mode button{border:0;background:transparent;padding:9px 10px;border-radius:9px;font-weight:700;font-size:.84rem;color:var(--muted)}
+.mode button.on{background:var(--surface);color:var(--fg);box-shadow:var(--shadow-sm)}
+.qfg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 14px}
+.qfg .pfl{font-size:.8rem;align-content:start}
+.pfh{display:block;font-style:normal;font-weight:400;color:var(--dim);font-size:.74rem}
+.tx.bad{border-color:var(--danger)}
+.cardnote{color:var(--muted);font-size:.82rem;margin-top:-8px}
+@media (max-width:520px){.qfg{grid-template-columns:minmax(0,1fr)}}
 .aiprev{border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;background:var(--sunk);padding:12px 14px;display:grid;gap:6px;font-size:.82rem}
 .aiprev .k2{font-size:.7rem;font-weight:700;color:var(--accent-fg);text-transform:uppercase;letter-spacing:.06em;margin-top:4px}
 .aiprev .kv b{font-weight:700}
@@ -268,7 +277,7 @@ function md(src){
 function loadScript(src){return new Promise((ok,no)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>no(new Error('load '+src));document.head.appendChild(s)})}
 
 /* ---------------- state ---------------- */
-const fresh=()=>({step:0,skipped:[],info:'',cv:null,analysis:null,ans:{},profile:null,missingAsk:'',jd:'',match:null,proj:null,result:null,streamText:'',lang:'vi',tr:{},fileName:'',docId:null,checked:{},busy:null,error:null,retry:null,savedNote:'',invalid:null,missingText:'',qerr:{},formErr:false});
+const fresh=()=>({step:0,skipped:[],info:'',cv:null,analysis:null,ans:{},profile:null,missingAsk:'',jd:'',match:null,proj:null,result:null,streamText:'',lang:'vi',tr:{},fileName:'',docId:null,checked:{},busy:null,error:null,retry:null,savedNote:'',invalid:null,missingText:'',qerr:{},formErr:false,mode:'cv',qf:{},qfp:[{}],qfErr:{}});
 let S=fresh();
 const cap={sample:null,user:null,db:null,dl:null,uid:null,me:null};
 let ctl=null;
@@ -310,7 +319,7 @@ Khác biệt khi chạy trong trang web:
 Hôm nay là ${today()}.`;
 const files=keys=>keys.map(k=>`\n\n===== FILE: ${SK[k].path} =====\n${SK[k].text}`).join('');
 const ctx=()=>{
-  let s=`\n\n===== DỮ LIỆU MEMBER =====\nThông tin member gõ:\n${S.info||'(không có)'}\n`;
+  let s=`\n\n===== DỮ LIỆU MEMBER =====\nThông tin member gõ:\n${infoText()||'(không có)'}\n`;
   if(S.cv)s+=`\nNội dung CV (file ${S.cv.name}):\n${S.cv.text.slice(0,60000)}\n`;
   if(cap.me&&(cap.me.name||cap.me.email))s+=`\nTài khoản claude.ai của người đang dùng: ${cap.me.name||'?'} · ${cap.me.email||'?'} (chỉ để tham khảo đề xuất họ tên / email; CV và thông tin member gõ được ưu tiên).\n`;
   return s;
@@ -419,7 +428,8 @@ const J=(prompt,signal)=>cap.sample.json(prompt,{signal});
 /* ---------------- flow actions ---------------- */
 const A={
  async analyze(){
-  if(!S.info.trim()&&!S.cv){S.error='Bạn chọn file CV hoặc gõ vài dòng về mình trước nhé.';render();return}
+  if(S.mode==='form'){const m=qfValidate();if(m){S.error=m;S.formErr=true;S.retry=null;render();return}if(S.formErr){S.error=null;S.formErr=false}}
+  else if(!S.info.trim()&&!S.cv){S.error='Bạn chọn file CV hoặc chuyển sang “Chưa có CV, điền nhanh” nhé.';render();return}
   const r=await ask('analyze','Đang đọc thông tin của bạn…',sig=>J(P.analyze(),sig));if(!r)return;
   Object.assign(S,{analysis:r,ans:{},profile:null,match:null,proj:null,result:null,tr:{},skipped:[]});
   if(r.stop){S.step=1;render();return}
@@ -505,6 +515,47 @@ const PF=[
   {k:'tasks',l:'Việc bạn làm',ph:'VD: Thiết kế DB, viết API đặt lịch và thanh toán, tối ưu truy vấn báo cáo.',req:1,long:1},
   {k:'stack',l:'Công nghệ',ph:'VD: Laravel, MySQL, Redis, AWS',req:1},
   {k:'result',l:'Kết quả nổi bật (nếu có)',ph:'VD: Giảm 40% thời gian tải trang báo cáo.'}];
+// Điền nhanh khi chưa có CV: đúng các thông tin skill cần ở Câu 1 (collect-info.md §1), mỗi thông tin một ô.
+const QF=[
+  {k:'name',l:'Họ tên',ph:'Nguyễn Văn An',req:1},
+  {k:'email',l:'Email công ty',ph:'an.nguyen@tomosia.com',req:1,email:1},
+  {k:'role',l:'Vị trí',req:1,opts:['Backend','Frontend','Fullstack','Mobile','QA'],wide:1},
+  {k:'years',l:'Số năm kinh nghiệm',ph:'4',req:1,hint:'Tính từ công việc IT đầu tiên'},
+  {k:'dob',l:'Ngày sinh',ph:'15/08/1996'},
+  {k:'stack',l:'Công nghệ chính',ph:'Laravel 4 năm, PHP 4 năm, MySQL, Docker',req:1,wide:1,hint:'Ghi số năm cạnh công nghệ chính nếu nhớ'},
+  {k:'lang',l:'Ngoại ngữ, chứng chỉ',ph:'JLPT N3, TOEIC 750, AWS Certified Developer',wide:1},
+  {k:'domain',l:'Lĩnh vực đã làm',ph:'Thương mại điện tử, y tế, logistics',wide:1}];
+const qfMissingReq=()=>QF.filter(f=>f.req&&!String(S.qf[f.k]||'').trim());
+function qfValidate(){
+  const e={};for(const f of QF){const v=String(S.qf[f.k]||'').trim();
+    if(f.req&&!v)e[f.k]='Bạn điền giúp mục này nhé';
+    else if(f.email&&v&&!FMT.email.re.test(v))e[f.k]=FMT.email.msg;
+    else if(f.k==='dob'&&v&&!FMT.date.re.test(v))e[f.k]=FMT.date.msg;
+    else if(f.k==='years'&&v&&!/^\d{1,2}([.,]\d)?(\s*năm)?$/i.test(v))e[f.k]='Ghi số năm, VD 4 hoặc 2,5'}
+  const pj=S.qfp.map((it,i)=>[i,pjMissing(it)]).filter(x=>x[1].length);
+  S.qfErr=e;S.qfPjBad=pj.length>0;
+  const msg=[...(Object.keys(e).length?['Bạn kiểm tra lại các ô tô đỏ nhé']:[]),...pj.map(([i,f])=>`Dự án ${i+1} còn thiếu: ${f.join(', ')}`)];
+  return msg.length?msg.join('. ')+'.':'';
+}
+function qfText(){
+  const L=QF.filter(f=>String(S.qf[f.k]||'').trim()).map(f=>`${f.l}: ${String(S.qf[f.k]).trim()}`);
+  const pj=pjText(S.qfp);if(pj)L.push('Dự án nổi bật:\n  '+pj);return L.join('\n');
+}
+const infoText=()=>S.mode==='form'?[qfText(),S.info.trim()?'Thông tin khác: '+S.info.trim():''].filter(Boolean).join('\n'):S.info;
+function qfHTML(){
+  const e=S.qfErr||{};
+  return `<div class="qfg">${QF.map(f=>{const v=S.qf[f.k]||'',bad=e[f.k],id='qf-'+f.k;
+    const ctl=f.opts?`<div class="opts single" role="radiogroup" aria-label="${f.l}">${f.opts.map(o=>`<button type="button" class="o${v===o?' on':''}" data-qfrole="${o}" role="radio" aria-checked="${v===o}"><span class="ot">${o}</span></button>`).join('')}</div>`
+      :`<input class="tx qf${bad?' bad':''}" id="${id}" data-k="${f.k}" placeholder="${esc('VD: '+f.ph)}" value="${esc(v)}"${f.email?' type="email" inputmode="email" autocomplete="email" spellcheck="false"':f.k==='years'?' inputmode="decimal"':f.k==='name'?' autocomplete="name"':''}>`;
+    return `<${f.opts?'div':'label'} class="pfl${f.wide?' wide':''}"${f.opts?'':` for="${id}"`}><span>${f.l}${f.req?'<span class="req">*</span>':''}</span>${ctl}${f.hint&&!bad?`<i class="pfh">${f.hint}</i>`:''}${bad?`<small class="qerr">${esc(bad)}</small>`:''}</${f.opts?'div':'label'}>`}).join('')}</div>`;
+}
+function pjHTML(key,qid,items,checkMiss){
+  return items.map((it,i)=>`<fieldset class="pj"><legend>Dự án ${i+1}${i?` <button type="button" class="pjrm" data-act="rmproj" data-f="${esc(key)}" data-q="${esc(qid)}" data-i="${i}">Bỏ dự án này</button>`:''}</legend><div class="pjg">${PF.map(f=>{const id=`pf-${esc(key)}-${esc(qid)}-${i}-${f.k}`,miss=checkMiss&&f.req&&pjFilled(it)&&!(it[f.k]||'').trim();
+    const ctl=f.long?`<textarea class="pf${miss?' bad':''}" id="${id}" data-f="${esc(key)}" data-q="${esc(qid)}" data-i="${i}" data-k="${f.k}" placeholder="${esc(f.ph)}">${esc(it[f.k]||'')}</textarea>`:`<input class="tx pf${miss?' bad':''}" id="${id}" data-f="${esc(key)}" data-q="${esc(qid)}" data-i="${i}" data-k="${f.k}" placeholder="${esc(f.ph)}" value="${esc(it[f.k]||'')}">`;
+    return `<label class="pfl${f.long?' wide':''}" for="${id}"><span>${esc(f.l)}${f.req?'<span class="req">*</span>':''}</span>${ctl}</label>`}).join('')}</div></fieldset>`).join('')
+    +(items.length<2?`<button type="button" class="btn ghost sm" data-act="addproj" data-f="${esc(key)}" data-q="${esc(qid)}">+ Thêm dự án thứ 2</button>`:'')
+    +'<small class="pjnote">Không có dự án muốn kể thì để trống. Đã điền dự án thì các mục có * là bắt buộc.</small>';
+}
 const pjFilled=it=>PF.some(f=>(it[f.k]||'').trim());
 const pjMissing=it=>pjFilled(it)?PF.filter(f=>f.req&&!(it[f.k]||'').trim()).map(f=>(f.s||f.l).toLowerCase()):[];
 const pjText=items=>items.filter(pjFilled).map((it,i)=>`Dự án ${i+1}: `+PF.filter(f=>(it[f.k]||'').trim()).map(f=>`${f.l}: ${it[f.k].trim()}`).join(' · ')).join('\n  ');
@@ -555,12 +606,7 @@ function formHTML(key){
     const head=`<div class="ql">${q.header?`<span class="hd">${esc(q.header)}</span>`:''}${esc(q.question)}${isReq(key,q)?'<span class="req" title="Bắt buộc">*</span>':''}${q.hint?`<small>${esc(q.hint)}</small>`:''}${t==='choice'&&q.multi?'<small>Chọn được nhiều</small>':''}</div>`;
     const f=qfmt(q),at=`data-f="${esc(key)}" data-q="${esc(q.id)}" aria-label="${esc(q.question)}"${f==='email'?' type="email" inputmode="email" autocomplete="email" spellcheck="false"':''}`;
     let body;
-    if(t==='projects'){const items=r.items||[{}];
-      body=items.map((it,i)=>`<fieldset class="pj"><legend>Dự án ${i+1}${i?` <button type="button" class="pjrm" data-act="rmproj" data-f="${esc(key)}" data-q="${esc(q.id)}" data-i="${i}">Bỏ dự án này</button>`:''}</legend><div class="pjg">${PF.map(f=>{const id=`pf-${esc(key)}-${esc(q.id)}-${i}-${f.k}`,miss=(S.invalid||[]).includes(key+'/'+q.id)&&f.req&&pjFilled(it)&&!(it[f.k]||'').trim();
-        const ctl=f.long?`<textarea class="pf${miss?' bad':''}" id="${id}" data-f="${esc(key)}" data-q="${esc(q.id)}" data-i="${i}" data-k="${f.k}" placeholder="${esc(f.ph)}">${esc(it[f.k]||'')}</textarea>`:`<input class="tx pf${miss?' bad':''}" id="${id}" data-f="${esc(key)}" data-q="${esc(q.id)}" data-i="${i}" data-k="${f.k}" placeholder="${esc(f.ph)}" value="${esc(it[f.k]||'')}">`;
-        return `<label class="pfl${f.long?' wide':''}" for="${id}"><span>${esc(f.l)}${f.req?'<span class="req">*</span>':''}</span>${ctl}</label>`}).join('')}</div></fieldset>`).join('')
-        +(items.length<2?`<button type="button" class="btn ghost sm" data-act="addproj" data-f="${esc(key)}" data-q="${esc(q.id)}">+ Thêm dự án thứ 2</button>`:'')
-        +'<small class="pjnote">Không có dự án muốn kể thì để trống. Đã điền dự án thì các mục có * là bắt buộc.</small>'}
+    if(t==='projects')body=pjHTML(key,q.id,r.items||[{}],(S.invalid||[]).includes(key+'/'+q.id));
     else if(t==='text')body=`<input class="tx" ${at} placeholder="${esc(q.placeholder||'')}" value="${esc(r.other)}">`;
     else if(t==='longtext')body=`<textarea class="tx" ${at} placeholder="${esc(q.placeholder||'')}">${esc(r.other)}</textarea>`;
     else body=`<div class="opts ${q.multi?'multi':'single'}" data-f="${esc(key)}" data-q="${esc(q.id)}">${(q.options||[]).map((o,i)=>`<button type="button" class="o${r.sel.includes(o.label)?' on':''}" data-i="${i}"><span class="ot">${esc(o.label)}${o.description?`<span class="od">${esc(o.description)}</span>`:''}</span>${o.recommended?'<span class="r">Đề xuất</span>':''}</button>`).join('')}</div>
@@ -642,14 +688,21 @@ async function takeFile(f){
 /* ---------------- render ---------------- */
 const ag=t=>`<div class="ag"><div class="av">${LOGO}</div><p>${esc(t)}</p></div>`;
 function leftHTML(){
-  const s=S.step;let h=`<div class="sh"><span class="k">${stepPos()}</span><h2>${TITLES[s]}</h2></div>`;
+  const s=S.step;let h=`<div class="sh"><span class="k">${stepPos()}</span><h2>${s===0&&S.mode==='form'?'Giới thiệu nhanh về bạn':TITLES[s]}</h2></div>`;
   if(s===0){
-    h+=ag('Chào bạn! Gửi mình CV hoặc vài dòng về bản thân. Mình sẽ hỏi thêm vài câu ngắn rồi viết Short Bio, Core Skills và Projects để gửi khách. Thường mất khoảng 5 phút.');
-    h+=`<div class="card">${S.cv?`<div class="file">📄 <span>${esc(S.cv.name)} · ${S.cv.text.length.toLocaleString('vi')} ký tự</span><button type="button" data-act="rmcv">Bỏ file</button></div>`:
-      `<label class="drop" id="drop"><input type="file" id="cvfile" accept=".xlsx,.xls,.docx,.pdf,.txt,.md,.csv" hidden><div class="ic">${I.up}</div><b>Chọn hoặc kéo thả file CV</b><span>Nhận .xlsx, .docx, .pdf, .txt. CV trên Google Sheets / Docs: tải về máy rồi chọn ở đây.</span></label>`}
-      <div class="or">${S.cv?'ghi chú thêm (không bắt buộc)':'hoặc'}</div>
-      <div class="q"><div class="ql">${S.cv?'Có gì CV chưa ghi thì thêm ở đây':'Gõ vài dòng về bạn'}<small>${S.cv?'VD: email mới, chứng chỉ vừa đạt, dự án gần đây.':'Cần có: họ tên, email, vị trí (Backend, Frontend, Fullstack, Mobile hoặc QA), số năm kinh nghiệm, công nghệ chính. Nên có: ngoại ngữ, chứng chỉ, lĩnh vực đã làm, dự án nổi bật.'}</small></div>
-      <textarea id="info" placeholder="VD: Nguyễn Văn An, an.nguyen@tomosia.com, Backend 4 năm. Laravel / PHP / MySQL, đã làm hệ thống đặt lịch cho phòng khám. JLPT N3.">${esc(S.info)}</textarea></div></div>`;
+    const tabs=`<div class="mode" role="tablist" aria-label="Cách cung cấp thông tin">${[['cv','Tôi có file CV'],['form','Chưa có CV, điền nhanh']].map(([m,l])=>`<button type="button" role="tab" aria-selected="${S.mode===m}" class="${S.mode===m?'on':''}" data-act="mode" data-m="${m}">${l}</button>`).join('')}</div>`;
+    if(S.mode==='cv'){
+      h+=ag('Chào bạn! Mình sẽ đọc CV, hỏi thêm vài câu ngắn rồi viết Short Bio, Core Skills và Projects để gửi khách. Thường mất khoảng 5 phút.');
+      h+=tabs+`<div class="card">${S.cv?`<div class="file">📄 <span>${esc(S.cv.name)} · ${S.cv.text.length.toLocaleString('vi')} ký tự</span><button type="button" data-act="rmcv">Bỏ file</button></div>`:
+        `<label class="drop" id="drop"><input type="file" id="cvfile" accept=".xlsx,.xls,.docx,.pdf,.txt,.md,.csv" hidden><div class="ic">${I.up}</div><b>Chọn hoặc kéo thả file CV</b><span>Nhận .xlsx, .docx, .pdf, .txt. CV trên Google Sheets / Docs: tải về máy rồi chọn ở đây.</span></label>`}
+        <div class="q"><div class="ql">${S.cv?'Có gì CV chưa ghi thì thêm ở đây':'Ghi chú thêm'}<small>Không bắt buộc. VD: email mới, chứng chỉ vừa đạt, dự án gần đây.</small></div>
+        <textarea id="info" placeholder="VD: Email mới: an.nguyen@tomosia.com. Vừa đạt JLPT N2 (12/2025).">${esc(S.info)}</textarea></div></div>`;
+    }else{
+      h+=ag('Chưa có CV cũng không sao. Bạn điền các ô dưới đây, khoảng 2–3 phút. Ô có * là bắt buộc, các ô còn lại có thì bio sẽ cụ thể hơn.');
+      h+=tabs+`<div class="card"><div class="card-t">Thông tin của bạn<span>* là bắt buộc</span></div>${qfHTML()}</div>
+        <div class="card"><div class="card-t">Dự án nổi bật<span>Không bắt buộc, tối đa 2</span></div><p class="cardnote">Có dự án thì bio đủ 3 đoạn và có phần Projects. Tên dự án chỉ để mình hiểu, không xuất hiện trong bio.</p>${pjHTML('__start','p',S.qfp,S.qfPjBad)}</div>
+        <div class="card"><div class="q"><div class="ql">Muốn kể thêm gì khác?<small>Không bắt buộc. VD: thế mạnh, công cụ hay dùng, việc bạn tự hào.</small></div><textarea id="info" placeholder="VD: Thường làm phần thanh toán và tích hợp API bên thứ ba. Từng hướng dẫn 2 bạn mới vào team.">${esc(S.info)}</textarea></div></div>`;
+    }
   }
   if(s===1&&S.analysis){
     const a=S.analysis;h+=ag(a.message||'');
@@ -712,11 +765,12 @@ function previewHTML(){
   return `<div class="ph"><b>Bản xem trước</b>${lang}</div>${S.step>=6?legend:''}${body}`;
 }
 function paintPreview(){$('#right').innerHTML=previewHTML()}
+const startReady=()=>S.mode==='form'?!qfMissingReq().length:!!(S.cv||S.info.trim());
 function navHTML(){
   const s=S.step,b=!!S.busy;let back='',main='',extra='';
   const canBack=(s>0&&s<6||s===7&&!!S.proj||s===7&&!!S.analysis)&&!b; // bio mở từ lịch sử không có các bước trước
   back=`<button type="button" class="btn ghost" data-act="back" ${canBack?'':'disabled'}>${I.back}Quay lại</button>`;
-  if(s===0)main=`<button type="button" class="btn" data-act="analyze" ${b||!cap.sample||!(S.info.trim()||S.cv)?'disabled':''} title="${S.info.trim()||S.cv?'':'Chọn file CV hoặc gõ vài dòng về bạn trước'}">Bắt đầu${I.next}</button>`;
+  if(s===0)main=`<button type="button" class="btn" data-act="analyze" ${b||!cap.sample||!startReady()?'disabled':''} title="${startReady()?'':S.mode==='form'?'Điền đủ các ô có * trước':'Chọn file CV trước'}">Bắt đầu${I.next}</button>`;
   if(s===1)main=S.analysis?.stop?`<button type="button" class="btn" data-act="restart">Làm lại</button>`:`<button type="button" class="btn" data-act="afterForm" ${b?'disabled':''}>Tiếp tục${I.next}</button>`;
   if(s===2)main=`<button type="button" class="btn" data-act="finalize" ${b?'disabled':''}>Tiếp tục${I.next}</button>`;
   if(s===3){if(S.missingAsk)main=`<button type="button" class="btn" data-act="missing" ${b||!S.missingText.trim()?'disabled':''}>Tiếp tục${I.next}</button>`;
@@ -748,6 +802,8 @@ document.addEventListener('input',e=>{
   if(e.target.id==='info'||e.target.id==='jd'||e.target.id==='missing'){
     if(e.target.id==='info')S.info=e.target.value;else if(e.target.id==='jd')S.jd=e.target.value;else S.missingText=e.target.value;
     $('#nav').innerHTML=navHTML();return}
+  if(e.target.matches('.qf[data-k]')){const k=e.target.dataset.k;S.qf[k]=e.target.value;if(S.qfErr?.[k]&&e.target.value.trim()){delete S.qfErr[k];e.target.classList.remove('bad');e.target.parentElement.querySelector('.qerr')?.remove()}$('#nav').innerHTML=navHTML();return}
+  if(e.target.matches('.pf[data-f="__start"]')){(S.qfp[+e.target.dataset.i]||={})[e.target.dataset.k]=e.target.value;if(e.target.value.trim())e.target.classList.remove('bad');return}
   if(e.target.matches('.pf[data-f]')){const a=S.ans[e.target.dataset.f];const r=a&&a.v[e.target.dataset.q];if(r){(r.items[+e.target.dataset.i]||={})[e.target.dataset.k]=e.target.value;if(e.target.value.trim())e.target.classList.remove('bad')}return}
   if(e.target.matches('.tx[data-f]')){const key=e.target.dataset.f,a=S.ans[key];if(!a)return;const q=a.qs.find(x=>x.id===e.target.dataset.q),r=a.v[q.id],id=key+'/'+q.id,box=e.target.closest('.q');
     r.other=e.target.value;
@@ -768,6 +824,7 @@ document.addEventListener('click',async e=>{
     if(!q.multi&&r.sel.length&&r.other){r.other='';const t=g.closest('.q')?.querySelector('.tx[data-f]');if(t)t.value=''}
     if(S.invalid&&r.sel.length){const id=g.dataset.f+'/'+q.id;S.invalid=S.invalid.filter(x=>x!==id);if(S.qerr)delete S.qerr[id];g.closest('.q')?.classList.remove('miss');g.closest('.q')?.querySelector('.qerr')?.remove()}
     g.querySelectorAll('.o').forEach((b,i)=>b.classList.toggle('on',r.sel.includes(q.options[i].label)));if(isAIQ(q))render();return}
+  const qr=e.target.closest('[data-qfrole]');if(qr){S.qf.role=qr.dataset.qfrole;if(S.qfErr?.role)delete S.qfErr.role;render();return}
   const ps=e.target.closest('#psel .o');
   if(ps){const k=ps.dataset.k,sel=S.proj.sel;if(sel.includes(k))S.proj.sel=sel.filter(x=>x!==k);else if(sel.length<2)S.proj.sel=[...sel,k];else return;render();return}
   const rm=e.target.closest('.rm');if(rm){S.checked[rm.dataset.i]=!S.checked[rm.dataset.i];render();return}
@@ -778,6 +835,8 @@ document.addEventListener('click',async e=>{
   const act=e.target.closest('[data-act]')?.dataset.act;if(!act)return;
   if(act==='stop'){ctl?.abort();return}
   if(act==='rmcv'){S.cv=null;render();return}
+  if(act==='mode'){S.mode=e.target.closest('[data-act]').dataset.m;S.error=null;S.formErr=false;render();return}
+  if((act==='addproj'||act==='rmproj')&&e.target.closest('[data-act]').dataset.f==='__start'){const el=e.target.closest('[data-act]');if(act==='addproj'&&S.qfp.length<2)S.qfp.push({});if(act==='rmproj')S.qfp.splice(+el.dataset.i,1);render();return}
   if(act==='addproj'||act==='rmproj'){const el=e.target.closest('[data-act]'),r=S.ans[el.dataset.f]?.v[el.dataset.q];if(r){if(act==='addproj'&&r.items.length<2)r.items.push({});if(act==='rmproj')r.items.splice(+el.dataset.i,1)}render();return}
   if(act==='back'){const order=[0,1,2,3,4,5].filter(k=>k<S.step&&!S.skipped.includes(k));if(order.length){S.step=order[order.length-1];S.error=null;render()}return}
   if(act==='restart'){S=fresh();render();return}
