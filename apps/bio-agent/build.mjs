@@ -38,19 +38,19 @@ let dest = join(here, "bio-agent.html");
 if (target === "web") {
   const runtime = readFileSync(join(here, "web", "runtime.js"), "utf8").replaceAll("</", "<\\/");
   out = out
-    .replace("chạy bằng tài khoản Claude của bạn.", "chạy bằng AI (Claude hoặc Gemini).")
     .replace("<script>\nconst SK", () => `<script>\n${runtime}\n</script>\n<script>\nconst SK`);
   if (!out.includes("window.claude = { use")) throw new Error("không chèn được runtime.js");
   out =
     '<!doctype html><html lang="vi"><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">' +
+    '<link rel="icon" href="/favicon.svg" type="image/svg+xml">' +
     // Reset mà claude.ai tự chèn cho artifact; thiếu nó thì [hidden] không ẩn được phần tử có display riêng.
     "<style>body{margin:0}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>" +
     "</head><body>\n" + out + "</body></html>\n";
   mkdirSync(join(here, "web", "public"), { recursive: true });
   dest = join(here, "web", "public", "index.html");
   // Vercel tự trả public/404.html cho đường dẫn không tồn tại.
-  copyFileSync(join(here, "web", "404.html"), join(here, "web", "public", "404.html"));
+  for (const f of ["404.html", "favicon.svg"]) copyFileSync(join(here, "web", f), join(here, "web", "public", f));
 } else if (target !== "artifact") {
   throw new Error(`target không hợp lệ: ${target} (artifact | web)`);
 }
