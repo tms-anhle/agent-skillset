@@ -17,7 +17,7 @@
     no_codes_configured: "Máy chủ chưa có mã truy cập nào (biến ACCESS_CODES trống hoặc chưa redeploy). Báo người quản trị nhé.",
     quota: "Mã truy cập này đã hết lượt hôm nay. Thử lại vào ngày mai hoặc liên hệ người cấp mã.",
     too_large: "CV hoặc JD quá dài. Hãy rút gọn rồi thử lại.",
-    limits_not_configured: "Máy chủ chưa cấu hình giới hạn lượt dùng. Báo người quản trị nhé.",
+    missing_key: "Máy chủ chưa có ANTHROPIC_API_KEY. Báo người quản trị nhé.",
     server_error: "Máy chủ Bio Agent gặp lỗi. Thử lại sau ít phút."
   };
   function fail(code) { var e = new Error(code); e.code = code; return e; }

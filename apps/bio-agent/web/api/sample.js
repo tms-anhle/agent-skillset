@@ -13,6 +13,7 @@ const BIO_TASK = "===== NHIỆM VỤ: bước 7–8"; // prompt viết bio, tín
 export async function POST(request) {
   const entry = findCode(request.headers.get("x-access-code"));
   if (!entry) return json(401, { error: "bad_code" });
+  if (!process.env.ANTHROPIC_API_KEY) return json(500, { error: "missing_key" });
 
   const body = await request.json().catch(() => ({}));
   const prompt = typeof body.prompt === "string" ? body.prompt : "";
@@ -56,7 +57,8 @@ export async function POST(request) {
       } catch (err) {
         if (!request.signal.aborted) {
           console.error("claude", err);
-          send({ error: errorCode(err) });
+          // Kèm mã HTTP và loại lỗi (không có nội dung nhạy cảm) để chẩn đoán từ trình duyệt.
+          send({ error: errorCode(err), status: err?.status ?? null, type: err?.error?.error?.type ?? err?.name ?? null });
         }
       }
       ctrl.close();
