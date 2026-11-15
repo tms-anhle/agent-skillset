@@ -1,4 +1,4 @@
-// Mã truy cập + giới hạn lượt dùng theo ngày (Upstash Redis).
+// Mã truy cập + giới hạn lượt dùng theo ngày (Upstash Redis, tùy chọn: không nối Redis thì không giới hạn lượt).
 //
 // ACCESS_CODES="tomosia:ma-dai-ngau-nhien:50,khach-a:ma-khac:10"  (nhãn:mã:số bio mỗi ngày)
 // Số lần gọi Claude mỗi ngày bị chặn ở CALLS_PER_BIO × số bio để mã không bị dùng làm proxy tự do.
@@ -56,7 +56,7 @@ async function bump(key) {
 
 // Trả về null nếu được phép, hoặc mã lỗi.
 export async function consume(entry, isBio) {
-  if (!getRedis()) return process.env.RATE_LIMIT_DISABLED === "1" ? null : "limits_not_configured";
+  if (!getRedis()) return null; // không có Redis: không giới hạn lượt, chỉ còn hạn mức chi tiêu trên Anthropic Console
   const day = today();
   const calls = await bump(`bio-agent:${entry.label}:${day}:calls`);
   if (calls > entry.limit * CALLS_PER_BIO) return "quota";
