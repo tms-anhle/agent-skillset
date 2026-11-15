@@ -356,6 +356,7 @@ Chỉ trả về nội dung file Markdown.`
 
 /* ---------------- Claude calls ---------------- */
 const ERR={not_granted:'Bạn chưa cho phép trang dùng Claude. Mở menu Permissions của artifact để bật lại.',sampling_disabled:'Tài khoản hoặc tổ chức của bạn chưa bật Claude cho artifact.',rate_limited:'Đã chạm giới hạn sử dụng Claude. Đợi một lúc rồi thử lại.',session_expired:'Phiên đăng nhập hết hạn. Đăng nhập lại claude.ai rồi thử lại.',prompt_too_large:'CV hoặc JD quá dài. Hãy rút gọn rồi thử lại.',refused:'Claude từ chối nội dung này. Kiểm tra lại CV / JD.',invalid_json:'Câu trả lời của Claude bị lỗi định dạng. Thử lại nhé.',empty_completion:'Claude không trả lời. Thử lại nhé.',upstream_error:'Kết nối tới Claude bị gián đoạn. Thử lại nhé.'};
+Object.assign(ERR,window.BIO_ERR||{});
 async function ask(kind,label,fn){
   if(!cap.sample){S.error='Trang cần mở trong claude.ai (đã đăng nhập) để gọi Claude.';render();return null}
   ctl=new AbortController();S.busy=label;S.error=null;render();

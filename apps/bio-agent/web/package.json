@@ -1,0 +1,15 @@
+{
+  "name": "bio-agent-web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node ../build.mjs web"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.8.0",
+    "@upstash/redis": "^1.41.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

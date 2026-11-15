@@ -1,30 +1,56 @@
 # Bio Agent
 
-Giao diện web cho skill [`generate-short-bio`](../../generate-short-bio/), chạy dưới dạng artifact trên claude.ai. Trang gọi Claude bằng tài khoản của chính người xem (capability `sample`), lưu lịch sử bio riêng cho từng người (`db`, `data/users/<id>/`) và tải file `.md` (`downloads`).
+Giao diện web cho skill [`generate-short-bio`](../../generate-short-bio/). Cùng một giao diện (`template.html`) chạy theo hai cách:
+
+| Bản | Gọi Claude bằng | Ai dùng được | Lịch sử bio |
+|---|---|---|---|
+| Artifact claude.ai | Tài khoản Claude của người xem | Chủ artifact và người được mời qua email | Lưu riêng từng người trên claude.ai |
+| Web trên Vercel (`web/`) | API key của công ty | Ai có link và mã truy cập | Lưu trong trình duyệt (localStorage) |
 
 ## File
 
 | File | Vai trò |
 |---|---|
 | `template.html` | Giao diện + flow 8 bước; chỗ `"__SKILL__"` được thay bằng nội dung skill khi build |
-| `build.py` | Đọc `SKILL.md` + `references/`, nhúng vào template, ghi ra `bio-agent.html` (không commit) |
+| `build.mjs` | Nhúng `SKILL.md` + `references/` vào template. `node build.mjs` → `bio-agent.html`; `node build.mjs web` → `web/public/index.html` |
+| `web/runtime.js` | Bản web: thay `window.claude` của artifact bằng API server, màn hình nhập mã, lịch sử localStorage |
+| `web/api/sample.js` | Gọi Claude (stream) bằng `ANTHROPIC_API_KEY`, kiểm tra mã và lượt dùng |
+| `web/api/check.js` | Kiểm tra mã truy cập |
+| `web/api/_lib.js` | Đọc `ACCESS_CODES`, đếm lượt theo ngày bằng Upstash Redis |
 
-## Build và đăng
+File build ra (`bio-agent.html`, `web/public/`) không commit.
+
+## Bản artifact claude.ai
 
 ```bash
-python3 -I apps/bio-agent/build.py
+node apps/bio-agent/build.mjs
 ```
 
-Đăng `apps/bio-agent/bio-agent.html` thành artifact với capabilities:
+Đăng `apps/bio-agent/bio-agent.html` lên cùng artifact cũ để giữ link và lịch sử, capabilities:
 
 ```json
 {"sample": {}, "user": {"scopes": ["profile", "email"]}, "db": {}, "downloads": true}
 ```
 
-Sửa skill xong thì build và đăng lại lên cùng artifact để giữ link và lịch sử.
+Link công khai không đủ: tài khoản ngoài tổ chức mở được trang nhưng không gọi được Claude. Mời từng email qua menu Share.
 
-## Chia sẻ
+## Bản web trên Vercel
 
-- Người được mời đích danh qua email (menu Share) dùng được đầy đủ.
-- Link công khai: tài khoản ngoài tổ chức mở được trang nhưng không gọi được Claude.
-- Nội dung skill nằm trong mã nguồn trang, ai mở được trang đều đọc được.
+1. **Anthropic Console:** tạo API key riêng cho Bio Agent, đặt giới hạn chi tiêu theo tháng cho workspace của key.
+2. **Vercel → New Project:** chọn repo, đặt **Root Directory** là `apps/bio-agent/web`, Framework Preset `Other`. Giữ bật tùy chọn cho phép đọc file ngoài Root Directory (build cần thư mục `generate-short-bio/`).
+3. **Storage → Upstash Redis (Marketplace):** tạo database và gắn vào project. Vercel tự thêm `KV_REST_API_URL`, `KV_REST_API_TOKEN`.
+4. **Settings → Environment Variables:** thêm các biến trong `web/.env.example`:
+   - `ANTHROPIC_API_KEY`: key ở bước 1.
+   - `ACCESS_CODES`: `nhãn:mã:số-bio-mỗi-ngày`, nhiều mã cách nhau bằng dấu phẩy. Ví dụ `tomosia:<mã ngẫu nhiên>:50,khach-a:<mã khác>:10`. Tạo mã bằng `openssl rand -base64 18`.
+   - Tùy chọn: `ANTHROPIC_MODEL` (mặc định `claude-opus-5-5`), `ANTHROPIC_EFFORT` (mặc định `medium`), `DAILY_BIO_LIMIT` (mặc định 20).
+5. **Deploy**, mở link, nhập mã, thử tạo một bio.
+
+Đổi hoặc thu hồi mã: sửa `ACCESS_CODES` rồi redeploy. Lượt dùng tính theo ngày giờ Việt Nam; mỗi mã có tối đa `số bio × 12` lần gọi Claude mỗi ngày để mã không bị dùng làm proxy tự do. Log của function ghi số token mỗi lần gọi (Vercel → Logs) để theo dõi chi phí.
+
+Chạy thử ở máy: `npm i -g vercel`, trong `apps/bio-agent/web` chạy `vercel link`, `vercel env pull`, rồi `vercel dev`. Chưa có Redis thì đặt `RATE_LIMIT_DISABLED=1` trong `.env.local`.
+
+## Bảo mật
+
+- API key chỉ nằm trong biến môi trường của Vercel, không ra trình duyệt.
+- Nội dung skill nằm trong mã nguồn trang, ai mở được trang đều đọc được (repo cũng public).
+- CV và JD gửi qua server tới Claude API, server không lưu lại; lịch sử bio chỉ nằm trong trình duyệt của người dùng.

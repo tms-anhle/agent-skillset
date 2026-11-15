@@ -9,3 +9,8 @@ evals/*/results/
 __pycache__/
 # Trang Bio Agent đã build (sinh từ template + skill)
 apps/bio-agent/bio-agent.html
+apps/bio-agent/web/public/
+apps/bio-agent/web/node_modules/
+apps/bio-agent/web/.vercel/
+apps/bio-agent/web/.env*
+!apps/bio-agent/web/.env.example
