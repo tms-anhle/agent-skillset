@@ -5,7 +5,7 @@
 //
 // Đọc SKILL.md + references/ của skill, chèn vào template.html. Bản web bọc thêm
 // khung HTML và web/runtime.js (thay window.claude bằng API của server).
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, copyFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -49,6 +49,8 @@ if (target === "web") {
     "</head><body>\n" + out + "</body></html>\n";
   mkdirSync(join(here, "web", "public"), { recursive: true });
   dest = join(here, "web", "public", "index.html");
+  // Vercel tự trả public/404.html cho đường dẫn không tồn tại.
+  copyFileSync(join(here, "web", "404.html"), join(here, "web", "public", "404.html"));
 } else if (target !== "artifact") {
   throw new Error(`target không hợp lệ: ${target} (artifact | web)`);
 }
