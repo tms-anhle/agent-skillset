@@ -8,17 +8,24 @@ import { Redis } from "@upstash/redis";
 const CALLS_PER_BIO = 12;
 const DEFAULT_BIO_LIMIT = Number(process.env.DAILY_BIO_LIMIT || 20);
 
+// Chấp nhận cả cách nhập lệch: có dấu nháy bao ngoài, dán cả "ACCESS_CODES=...", hoặc chỉ ghi mã (không nhãn).
 function codes() {
-  return (process.env.ACCESS_CODES || "")
+  const raw = (process.env.ACCESS_CODES || "").trim().replace(/^ACCESS_CODES\s*=\s*/, "").replace(/^["']|["']$/g, "");
+  return raw
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean)
-    .map((s) => {
-      const [label, code, limit] = s.split(":").map((x) => x.trim());
+    .map((s, i) => {
+      const parts = s.split(":").map((x) => x.trim());
+      if (parts.length === 1) return { label: `ma-${i + 1}`, code: parts[0], limit: DEFAULT_BIO_LIMIT };
+      const [label, code, limit] = parts;
       return { label, code, limit: Number(limit) || DEFAULT_BIO_LIMIT };
     })
     .filter((c) => c.label && c.code);
 }
+
+// Chỉ đếm, không lộ mã: giúp chẩn đoán khi cấu hình sai.
+export const codeCount = () => codes().length;
 
 const digest = (s) => createHash("sha256").update(s).digest();
 

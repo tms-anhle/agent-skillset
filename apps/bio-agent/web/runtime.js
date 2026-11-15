@@ -14,6 +14,7 @@
   window.BIO_ERR = {
     need_code: "Bạn nhập mã truy cập để dùng Bio Agent nhé.",
     bad_code: "Mã truy cập không đúng hoặc đã bị thu hồi. Bạn nhập lại mã nhé.",
+    no_codes_configured: "Máy chủ chưa có mã truy cập nào (biến ACCESS_CODES trống hoặc chưa redeploy). Báo người quản trị nhé.",
     quota: "Mã truy cập này đã hết lượt hôm nay. Thử lại vào ngày mai hoặc liên hệ người cấp mã.",
     too_large: "CV hoặc JD quá dài. Hãy rút gọn rồi thử lại.",
     limits_not_configured: "Máy chủ chưa cấu hình giới hạn lượt dùng. Báo người quản trị nhé.",
