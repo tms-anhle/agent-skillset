@@ -61,9 +61,6 @@ button{font:inherit;color:inherit;cursor:pointer}
 .st .lb{display:flex;gap:6px;align-items:baseline;white-space:nowrap}
 .st .n{font-variant-numeric:tabular-nums;font-weight:700;font-size:.7rem}
 .st.done{color:var(--muted)}.st.done .seg{background:var(--accent)}
-.st.skip{color:var(--dim)}.st.skip .seg{background:repeating-linear-gradient(90deg,var(--line-2) 0 4px,transparent 4px 7px)}
-.st.skip .lb{font-style:italic}
-.st .why{display:block;font-size:.66rem;font-weight:500;color:var(--dim);white-space:nowrap}
 .st.cur{color:var(--fg);font-weight:700}.st.cur .seg{background:var(--ink)}
 
 .panes{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);min-height:600px}
@@ -109,6 +106,12 @@ button{font:inherit;color:inherit;cursor:pointer}
 .pf.bad{border-color:var(--danger)}
 .pjnote{color:var(--dim);font-size:.76rem}
 .qerr{color:var(--danger);font-size:.78rem;font-weight:600}
+.skipjd{justify-self:start}
+.aiprev{border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;background:var(--sunk);padding:12px 14px;display:grid;gap:6px;font-size:.82rem}
+.aiprev .k2{font-size:.7rem;font-weight:700;color:var(--accent-fg);text-transform:uppercase;letter-spacing:.06em;margin-top:4px}
+.aiprev .kv b{font-weight:700}
+.aiprev blockquote{margin:0;font-family:var(--f-doc);font-size:.92rem;line-height:1.55;color:var(--fg)}
+.aiprev small{color:var(--dim)}
 @media (max-width:520px){.pjg{grid-template-columns:minmax(0,1fr)}}
 .q.miss .ql{color:var(--danger)}
 .q.miss .tx:not(.pf),.q.miss .opts .o{border-color:var(--danger)}
@@ -193,7 +196,6 @@ mark.y{background:var(--y);color:var(--y-fg)}mark.g{background:var(--g);color:va
 @media (max-width:900px){
   .panes{grid-template-columns:minmax(0,1fr)}
   .left{border-right:0;border-bottom:1px solid var(--line)}
-  .steps{grid-template-columns:repeat(8,92px)}
 }
 @media (max-width:520px){
   .left,.right{padding:16px}
@@ -509,8 +511,19 @@ const pjText=items=>items.filter(pjFilled).map((it,i)=>`Dự án ${i+1}: `+PF.fi
 const TERMINAL_OPT=/\b(other)\b|tin nhắn sau|gõ vào ô|gõ ở ô|tự gõ|để trống|điền sau|^bỏ qua$|(^|\s)khác$/i; // "Email khác", "Vị trí khác": đã có ô trả lời khác
 // Tên chủ đề nội bộ của skill → tên dễ hiểu với member
 const HEADER_MAP=[[/^chuẩn\s*(junior|middle|senior)$/i,'Việc đã làm'],[/^mức\s*match$|^match$/i,'Mức khớp JD'],[/^role$/i,'Vị trí'],[/^bắt buộc$/i,'Thông tin cần có']];
-const NONE_OPT=/^(chưa|không)\b.*\b(nào|gì)\b/i; // lựa chọn "không chọn gì" của câu chọn nhiều
+const NONE_OPT=/^(chưa|không)(?=\s).*\s(nào|gì)(?=[\s,.!]|$)/i; // lựa chọn "không chọn gì" của câu chọn nhiều
+// Câu AI (collect-info.md §5 mục 1b): nội dung thêm vào là cố định (output.md §2, write-bio.md §1),
+// nên trang cho member xem trước đúng nội dung đó thay vì chỉ ghi "thêm 2 dòng AI".
+const AI_INFO=(()=>{const o=SK.output?.text||'',w=SK.write?.text||'';
+  const lines=[/\*\*AI \/ AI-assisted Development:\*\*[^\n]*/,/\*\*AI-driven Software Development:\*\*[^\n]*/].map(re=>(o.match(re)||[''])[0].replace(/\*\*/g,'')).filter(Boolean);
+  const para=(w.match(/^>\s*(Có kinh nghiệm ứng dụng AI[^\n]*)/m)||[])[1]||'';return {lines,para}})();
+const isAIQ=q=>/^AI\b/i.test(String(q.header||'').trim())||/dùng AI|AI trong (lúc |quá trình )?phát triển/i.test(q.question||'');
+const isYes=l=>/^có(?=[\s,.!]|$)/i.test(String(l).trim());
+function aiPreview(){if(!AI_INFO.lines.length)return '';
+  return `<div class="aiprev"><b>Sẽ thêm vào bio của bạn:</b><span class="k2">Core Skills, 2 dòng</span>${AI_INFO.lines.map(l=>{const i=l.indexOf(':');return `<div class="kv"><b>${esc(l.slice(0,i+1))}</b>${esc(l.slice(i+1))}</div>`}).join('')}${AI_INFO.para?`<span class="k2">Cuối Short Bio, 1 đoạn (không thêm cho vị trí QA)</span><blockquote>${esc(AI_INFO.para)}</blockquote>`:''}<small>Đây là nội dung mẫu chung. Bạn dùng công cụ khác thì ghi vào ô bên dưới, hoặc sửa trong file sau khi tải về.</small></div>`}
 function cleanQs(qs,key){return (qs||[]).map(q=>{q={...q};
+  if(isAIQ(q)&&q.options){q.options=q.options.map(o=>isYes(o.label)?{...o,label:'Có, thêm phần AI vào bio',description:'Thêm 2 dòng Core Skills và 1 đoạn cuối Short Bio, xem nội dung bên dưới'}:/^không/i.test(o.label)?{...o,description:'Bio không nhắc tới việc dùng AI'}:o);
+    q.otherHint='Hoặc chỉ ghi các công cụ AI bạn dùng, VD Claude, GitHub Copilot';q.hint=q.hint||'Khách thường hỏi cách bạn dùng AI khi làm việc.'}
   // Lưới an toàn: câu "kể thêm dự án" ở form bổ sung mà model trả về dạng ô chữ → đổi sang form từng mục.
   if(key==='form'&&q.type!=='projects'&&/dự án/i.test((q.header||'')+' '+(q.question||''))&&/(kể|thêm|bổ sung|nhập)/i.test(q.question||'')&&(q.type==='longtext'||(q.options||[]).some(o=>/tin nhắn sau|nhập ở/i.test(o.label||''))))q={...q,type:'projects',options:undefined};
   if(q.options){q.options=q.options.filter(o=>{const l=String(o.label||'').trim();return !TERMINAL_OPT.test(l)&&!(q.multi&&NONE_OPT.test(l))});if(!q.options.length&&q.type!=='longtext')q.type='text'}
@@ -553,6 +566,7 @@ function formHTML(key){
     else body=`<div class="opts ${q.multi?'multi':'single'}" data-f="${esc(key)}" data-q="${esc(q.id)}">${(q.options||[]).map((o,i)=>`<button type="button" class="o${r.sel.includes(o.label)?' on':''}" data-i="${i}"><span class="ot">${esc(o.label)}${o.description?`<span class="od">${esc(o.description)}</span>`:''}</span>${o.recommended?'<span class="r">Đề xuất</span>':''}</button>`).join('')}</div>
     <input class="tx" ${at} placeholder="${esc(q.otherHint||'Câu trả lời khác (không bắt buộc)…')}" value="${esc(r.other)}">`;
     const qe=(S.qerr||{})[key+'/'+q.id];
+    if(t==='choice'&&isAIQ(q)&&r.sel.some(isYes))body+=aiPreview();
     return `<div class="q${miss?' miss':''}">${head}${body}${qe?`<small class="qerr" role="alert">${esc(qe)}</small>`:''}</div>`}).join('');
 }
 
@@ -628,7 +642,7 @@ async function takeFile(f){
 /* ---------------- render ---------------- */
 const ag=t=>`<div class="ag"><div class="av">${LOGO}</div><p>${esc(t)}</p></div>`;
 function leftHTML(){
-  const s=S.step;let h=`<div class="sh"><span class="k">Bước ${s+1} / 8</span><h2>${TITLES[s]}</h2></div>`;
+  const s=S.step;let h=`<div class="sh"><span class="k">${stepPos()}</span><h2>${TITLES[s]}</h2></div>`;
   if(s===0){
     h+=ag('Chào bạn! Gửi mình CV hoặc vài dòng về bản thân. Mình sẽ hỏi thêm vài câu ngắn rồi viết Short Bio, Core Skills và Projects để gửi khách. Thường mất khoảng 5 phút.');
     h+=`<div class="card">${S.cv?`<div class="file">📄 <span>${esc(S.cv.name)} · ${S.cv.text.length.toLocaleString('vi')} ký tự</span><button type="button" data-act="rmcv">Bỏ file</button></div>`:
@@ -646,8 +660,8 @@ function leftHTML(){
   if(s===2&&S.analysis){h+=ag('Trước khi đi tiếp, mình muốn chắc chắn về vị trí bạn muốn ghi trong bio.');h+=`<div class="card">${formHTML('role')}</div>`}
   if(s===3){
     if(S.missingAsk){h+=ag(S.missingAsk);h+=`<div class="card"><textarea id="missing" placeholder="Gõ phần còn thiếu vào đây…">${esc(S.missingText)}</textarea></div>`;return h}
-    h+=ag('Nếu bio này để gửi một khách cụ thể, dán JD (mô tả công việc) của khách vào đây. Mình sẽ nhấn vào đúng điều khách cần và chỉ rõ chỗ nào đã chỉnh theo JD. Không có JD thì bấm “Bỏ qua, không có JD”.');
-    h+=`<div class="card"><div class="q"><div class="ql">JD của khách<small>Dán nguyên văn, tiếng Việt, Anh hay Nhật đều được.</small></div><textarea id="jd" placeholder="Dán nội dung JD vào đây…">${esc(S.jd)}</textarea></div></div>`;
+    h+=ag('Nếu bio này để gửi một khách cụ thể, dán JD (mô tả công việc) của khách vào đây. Mình sẽ nhấn vào đúng điều khách cần và chỉ rõ chỗ nào đã chỉnh theo JD. Không có JD thì bỏ qua bước này, bio sẽ viết theo hướng chung.');
+    h+=`<div class="card"><div class="q"><div class="ql">JD của khách<small>Dán nguyên văn, tiếng Việt, Anh hay Nhật đều được.</small></div><textarea id="jd" placeholder="Dán nội dung JD vào đây…">${esc(S.jd)}</textarea></div><button type="button" class="btn ghost skipjd" data-act="nojd" ${S.busy?'disabled':''}>Không có JD, bỏ qua bước này${I.next}</button></div>`;
   }
   if(s===4&&S.match){
     const m=S.match;h+=ag(m.message||'');
@@ -706,19 +720,20 @@ function navHTML(){
   if(s===1)main=S.analysis?.stop?`<button type="button" class="btn" data-act="restart">Làm lại</button>`:`<button type="button" class="btn" data-act="afterForm" ${b?'disabled':''}>Tiếp tục${I.next}</button>`;
   if(s===2)main=`<button type="button" class="btn" data-act="finalize" ${b?'disabled':''}>Tiếp tục${I.next}</button>`;
   if(s===3){if(S.missingAsk)main=`<button type="button" class="btn" data-act="missing" ${b||!S.missingText.trim()?'disabled':''}>Tiếp tục${I.next}</button>`;
-    else{const has=!!S.jd.trim();extra=`<button type="button" class="btn ghost" data-act="nojd" ${b?'disabled':''}>${has?'Không dùng JD':'Bỏ qua, không có JD'}</button>`;main=`<button type="button" class="btn" data-act="jdNext" ${b||!has?'disabled':''} title="${has?'':'Dán JD vào ô bên trái trước'}">Dùng JD này${I.next}</button>`}}
+    else{const has=!!S.jd.trim();main=`<button type="button" class="btn" data-act="jdNext" ${b||!has?'disabled':''} title="${has?'':'Dán JD vào ô bên trái trước'}">Dùng JD này${I.next}</button>`}}
   if(s===4)main=`<button type="button" class="btn" data-act="toProjects" ${b?'disabled':''}>Tiếp tục${I.next}</button>`;
   if(s===5)main=`<button type="button" class="btn" data-act="write" ${b||!(S.proj?.sel||[]).length?'disabled':''} title="${(S.proj?.sel||[]).length?'':'Chọn ít nhất 1 dự án'}">Viết bio${I.next}</button>`;
   if(s===6)main=`<button type="button" class="btn" disabled>Đang viết…</button>`;
   if(s===7)main=`<button type="button" class="btn ghost" data-act="rewrite" ${b?'disabled':''}>Viết lại bio</button><button type="button" class="btn" data-act="restart">Làm bio mới</button>`;
-  return `${back}<div class="mid">Bước ${s+1} / 8</div>${extra}${main}`;
+  return `${back}<div class="mid">${stepPos()}</div>${extra}${main}`;
 }
+const visibleSteps=()=>NAMES.map((_,k)=>k).filter(k=>k===S.step||!S.skipped.includes(k));
+const stepPos=()=>{const v=visibleSteps();return `Bước ${v.indexOf(S.step)+1} / ${v.length}`};
 function render(){
-  const sk=new Set(S.skipped);
-  // Bước được bỏ qua vì không cần (không phải lỗi): ghi rõ lý do thay vì gạch ngang.
-  const WHY={1:['Không cần','Thông tin đã đủ, không cần hỏi thêm'],2:['Không cần','Vị trí khớp với công nghệ, không cần xác nhận'],4:['Không có JD','Không có JD nên không cần chọn mức khớp'],5:['Không cần','Không có dự án để chọn']};
-  $('#steps').innerHTML=NAMES.map((n,k)=>{const skip=sk.has(k)&&k!==S.step,w=skip?WHY[k]||['Không cần','Bước này không cần']:null;
-    return `<div class="st ${k===S.step?'cur':skip?'skip':k<S.step?'done':''}"${k===S.step?' aria-current="step"':''}${w?` title="${w[1]}"`:''}><span class="seg"></span><span class="lb"><span class="n">${String(k+1).padStart(2,'0')}</span>${n}</span>${w?`<span class="why">${w[0]}</span>`:''}</div>`}).join('');
+  // Bước không cần (không phải hỏi thêm, vị trí đã khớp, không có JD, không có dự án) bị ẩn khỏi thanh bước.
+  const vis=visibleSteps();
+  $('#steps').style.gridTemplateColumns=`repeat(${vis.length},minmax(92px,1fr))`;
+  $('#steps').innerHTML=vis.map((k,i)=>`<div class="st ${k===S.step?'cur':k<S.step?'done':''}"${k===S.step?' aria-current="step"':''}><span class="seg"></span><span class="lb"><span class="n">${String(i+1).padStart(2,'0')}</span>${NAMES[k]}</span></div>`).join('');
   $('#left').innerHTML=`<div class="fade" style="display:flex;flex-direction:column;gap:16px">${leftHTML()}</div>`;
   paintPreview();
   $('#nav').innerHTML=navHTML();
@@ -752,7 +767,7 @@ document.addEventListener('click',async e=>{
     if(q.multi){r.sel=r.sel.includes(lab)?r.sel.filter(x=>x!==lab):[...r.sel,lab]}else{r.sel=r.sel.includes(lab)?(isReq(g.dataset.f,q)?r.sel:[]):[lab]}
     if(!q.multi&&r.sel.length&&r.other){r.other='';const t=g.closest('.q')?.querySelector('.tx[data-f]');if(t)t.value=''}
     if(S.invalid&&r.sel.length){const id=g.dataset.f+'/'+q.id;S.invalid=S.invalid.filter(x=>x!==id);if(S.qerr)delete S.qerr[id];g.closest('.q')?.classList.remove('miss');g.closest('.q')?.querySelector('.qerr')?.remove()}
-    g.querySelectorAll('.o').forEach((b,i)=>b.classList.toggle('on',r.sel.includes(q.options[i].label)));return}
+    g.querySelectorAll('.o').forEach((b,i)=>b.classList.toggle('on',r.sel.includes(q.options[i].label)));if(isAIQ(q))render();return}
   const ps=e.target.closest('#psel .o');
   if(ps){const k=ps.dataset.k,sel=S.proj.sel;if(sel.includes(k))S.proj.sel=sel.filter(x=>x!==k);else if(sel.length<2)S.proj.sel=[...sel,k];else return;render();return}
   const rm=e.target.closest('.rm');if(rm){S.checked[rm.dataset.i]=!S.checked[rm.dataset.i];render();return}
