@@ -372,6 +372,23 @@ Trả về đúng 2 phần, không thêm gì khác:
 (nội dung file Markdown)
 <<<NHAC>>>
 (một JSON array khối nhắc theo output.md §4, mỗi phần tử {"kind":"y|g|p|n","text":"..."}; "n" cho dòng ghép tiêu đề dự án với tên thật và mục khác; [] nếu không có gì)`,
+ review:draft=>PRE+files(['skill','jd','write','output'])+ctx()+profileText()+jdText()+answersText(['form','role','missing','match','projects'])+`
+
+===== BẢN NHÁP CẦN SOÁT =====
+${draft}
+
+===== NHIỆM VỤ: soát lại bản nháp (thay cho skill humanizer và write-bio.md §4–§5) =====
+Đọc lại bản nháp như một người duyệt khó tính, đối chiếu từng câu với dữ liệu member, câu trả lời và JD ở trên, rồi sửa trực tiếp. Giữ nguyên cấu trúc, nhãn, số đoạn và các dấu [[y:]] [[g:]] [[p:]]. Kiểm tra lần lượt:
+1. Nguồn: mỗi ý trong Short Bio phải truy được về CV, thông tin member, câu trả lời form hoặc quy tắc JD adjustment. Không truy được thì bỏ.
+2. Công nghệ member chưa từng dùng (chỉ có trong JD): không viết trong Short Bio như việc đã làm (VD "xây dựng hệ thống trên AWS"), trừ khi jd-match.md §3 cho phép thay stack cùng danh mục; khi đó bọc [[g:...]]. Nice to have member chưa có: bỏ khỏi Short Bio, chỉ để ở Core Skills + khối nhắc. Mọi công nghệ thêm theo JD phải có trong khối nhắc (kind "g").
+3. Lĩnh vực / domain và các ý không có sẵn: chỉ khẳng định khi CV, thông tin member hoặc câu trả lời có. Câu hỏi member để trống hoặc không chọn thì không tự điền; nếu suy được từ mô tả dự án thì bọc [[p:...]] và thêm vào khối nhắc (kind "p").
+4. Văn phong theo write-bio.md §3–§4: bỏ cụm sáo rỗng và từ thừa như "sở hữu năng lực", "chuyên sâu", "đảm bảo tính / khả năng ... hiệu quả", "đáp ứng yêu cầu của khách hàng", "nâng cao hiệu suất", "thường xuyên phối hợp", "góp phần", "đa dạng"; không lặp "hiệu quả", "chủ động", "tối ưu" quá một lần. Mỗi câu phải có thông tin cụ thể (công nghệ, loại sản phẩm, người dùng, quy mô, kết quả). Mở đầu các đoạn khác nhau, có câu nối giữa các đoạn.
+5. Khối nhắc: cập nhật cho khớp với bio sau khi sửa (bỏ mục không còn đúng, thêm mục mới).
+Trả về đúng định dạng như bản nháp, không thêm gì khác:
+<<<BIO>>>
+(nội dung file Markdown đã sửa)
+<<<NHAC>>>
+(JSON array khối nhắc đã cập nhật)`,
  translate:lang=>PRE+files(['skill','write','output'])+profileText()+`
 
 ===== BẢN TIẾNG VIỆT ĐÃ DUYỆT =====
@@ -440,9 +457,12 @@ const A={
   S.step=6;S.result=null;S.streamText='';S.tr={};S.lang='vi';S.checked={};S.docId=null;S.savedNote='';
   if(!S.fileName)S.fileName=await nextFileName();
   render();
-  const r=await ask('write','Đang viết bio, mất khoảng 1–2 phút…',sig=>cap.sample(P.write(),{signal:sig,onText:({text})=>{S.streamText=text;paintPreview()}}));
+  const r=await ask('write','Đang viết bản nháp, mất khoảng 1–2 phút…',sig=>cap.sample(P.write(),{signal:sig,onText:({text})=>{S.streamText=text;paintPreview()}}));
   if(!r){if(!S.error){const prev=[5,4,3].find(k=>!S.skipped.includes(k));S.step=prev??3}render();return}
-  const t=r.text;const bi=t.indexOf('<<<BIO>>>'),ni=t.indexOf('<<<NHAC>>>');
+  let t=r.text;
+  // Lượt soát lại: đối chiếu nguồn, bỏ ý suy đoán, sửa văn phong. Lỗi hoặc bị dừng thì giữ bản nháp.
+  const rv=await ask('write','Đang soát lại nội dung và văn phong…',sig=>cap.sample(P.review(t),{signal:sig,onText:({text})=>{S.streamText=text;paintPreview()}}));
+  if(rv&&rv.text.includes('<<<BIO>>>'))t=rv.text;else{S.error=null;S.retry=null}const bi=t.indexOf('<<<BIO>>>'),ni=t.indexOf('<<<NHAC>>>');
   const mdTxt=(bi>=0?t.slice(bi+9,ni>=0?ni:undefined):t.slice(0,ni>=0?ni:undefined)).trim();
   let rem=[];if(ni>=0){const raw=t.slice(ni+10);const a=raw.indexOf('['),b=raw.lastIndexOf(']');try{rem=JSON.parse(raw.slice(a,b+1))}catch{rem=[]}}
   S.result={md:mdTxt,reminders:Array.isArray(rem)?rem:[]};S.step=7;render();
