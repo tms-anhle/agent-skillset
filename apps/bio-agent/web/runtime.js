@@ -62,15 +62,8 @@
     gate.hidden = false;
     setTimeout(function () { gate.querySelector("input").focus(); }, 0);
   }
-  function addCodeButton() {
-    var who = document.getElementById("who");
-    if (!who || document.getElementById("codeBtn")) return;
-    var b = document.createElement("button");
-    b.type = "button"; b.id = "codeBtn"; b.className = "btn ghost sm"; b.textContent = "Mã truy cập";
-    b.addEventListener("click", function () { showGate(""); });
-    who.parentNode.insertBefore(b, who);
-  }
-  function boot() { addCodeButton(); if (!store.get(CODE_KEY)) showGate(""); }
+  // Chỉ hỏi mã khi máy này chưa có mã; mã sai hoặc bị thu hồi thì sample() tự mở lại hộp nhập.
+  function boot() { if (!store.get(CODE_KEY)) showGate(""); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
 
   /* ---------- gọi Claude qua server ---------- */
