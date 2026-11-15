@@ -62,7 +62,8 @@ button{font:inherit;color:inherit;cursor:pointer}
 .st .n{font-variant-numeric:tabular-nums;font-weight:700;font-size:.7rem}
 .st.done{color:var(--muted)}.st.done .seg{background:var(--accent)}
 .st.skip{color:var(--dim)}.st.skip .seg{background:repeating-linear-gradient(90deg,var(--line-2) 0 4px,transparent 4px 7px)}
-.st.skip .lb{text-decoration:line-through}
+.st.skip .lb{font-style:italic}
+.st .why{display:block;font-size:.66rem;font-weight:500;color:var(--dim);white-space:nowrap}
 .st.cur{color:var(--fg);font-weight:700}.st.cur .seg{background:var(--ink)}
 
 .panes{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);min-height:600px}
@@ -680,7 +681,10 @@ function navHTML(){
 }
 function render(){
   const sk=new Set(S.skipped);
-  $('#steps').innerHTML=NAMES.map((n,k)=>`<div class="st ${k===S.step?'cur':sk.has(k)?'skip':k<S.step?'done':''}"${k===S.step?' aria-current="step"':''}><span class="seg"></span><span class="lb"><span class="n">${String(k+1).padStart(2,'0')}</span>${n}</span></div>`).join('');
+  // Bước được bỏ qua vì không cần (không phải lỗi): ghi rõ lý do thay vì gạch ngang.
+  const WHY={1:['Không cần','Thông tin đã đủ, không cần hỏi thêm'],2:['Không cần','Vị trí khớp với công nghệ, không cần xác nhận'],4:['Không có JD','Không có JD nên không cần chọn mức khớp'],5:['Không cần','Không có dự án để chọn']};
+  $('#steps').innerHTML=NAMES.map((n,k)=>{const skip=sk.has(k)&&k!==S.step,w=skip?WHY[k]||['Không cần','Bước này không cần']:null;
+    return `<div class="st ${k===S.step?'cur':skip?'skip':k<S.step?'done':''}"${k===S.step?' aria-current="step"':''}${w?` title="${w[1]}"`:''}><span class="seg"></span><span class="lb"><span class="n">${String(k+1).padStart(2,'0')}</span>${n}</span>${w?`<span class="why">${w[0]}</span>`:''}</div>`}).join('');
   $('#left').innerHTML=`<div class="fade" style="display:flex;flex-direction:column;gap:16px">${leftHTML()}</div>`;
   paintPreview();
   $('#nav').innerHTML=navHTML();
