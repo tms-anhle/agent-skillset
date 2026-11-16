@@ -1,7 +1,7 @@
 <title>Short Bio Agent</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=JetBrains+Mono:wght@400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=JetBrains+Mono:wght@400&display=swap">
 <style>
 /* Layout: app 1 màn — thanh 8 bước, cột hỏi đáp (trái), tờ bio (phải), thanh điều hướng ở đáy */
 :root{
@@ -212,6 +212,96 @@ mark.y{background:var(--y);color:var(--y-fg)}mark.g{background:var(--g);color:va
   .nav{padding:12px 16px}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ================= Phong cách Notes =================
+   Giấy ấm, chữ tiêu đề có chân, điểm nhấn vàng kiểu giấy nhớ; danh sách bước dọc bên trái như sổ ghi chú. */
+:root{
+  --bg:#f4f1e9; --surface:#fffdf8; --sunk:#f8f5ec; --desk:#efeadf; --line:#e9e2d2; --line-2:#d9d0bb;
+  --ink:#2b2620; --ink-2:#433c33; --on-ink:#fffdf8; --fg:#2b2620; --muted:#6f685c; --dim:#a0988a;
+  --accent:#c98f00; --accent-soft:#fff1c2; --accent-fg:#7d5800; --spark:#2b2620; --note:#fde9a6; --note-fg:#4a3b10;
+  --shadow-sm:0 1px 2px rgba(60,48,20,.06); --shadow:0 1px 2px rgba(60,48,20,.05),0 18px 40px -22px rgba(60,48,20,.28);
+  --f:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif; --f-doc:"Newsreader",Georgia,"Times New Roman",serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1b1a17; --surface:#24221e; --sunk:#2a2824; --desk:#181714; --line:#34312b; --line-2:#47423a;
+  --ink:#f3ede1; --ink-2:#ddd6c8; --on-ink:#1b1a17; --fg:#ece6da; --muted:#b4ac9d; --dim:#80796d;
+  --accent:#f2c44b; --accent-soft:#3a3018; --accent-fg:#f6d57f; --spark:#1b1a17; --note:#3d3418; --note-fg:#f3e3b0}
+:root:not([data-theme="light"]) .st.done .seg{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M1.5 5.3l2.3 2.3L8.5 2.6' fill='none' stroke='%231b1a17' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}}
+:root[data-theme="dark"]{
+  --bg:#1b1a17; --surface:#24221e; --sunk:#2a2824; --desk:#181714; --line:#34312b; --line-2:#47423a;
+  --ink:#f3ede1; --ink-2:#ddd6c8; --on-ink:#1b1a17; --fg:#ece6da; --muted:#b4ac9d; --dim:#80796d;
+  --accent:#f2c44b; --accent-soft:#3a3018; --accent-fg:#f6d57f; --spark:#1b1a17; --note:#3d3418; --note-fg:#f3e3b0}
+:root[data-theme="dark"] .st.done .seg{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M1.5 5.3l2.3 2.3L8.5 2.6' fill='none' stroke='%231b1a17' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+body{font-size:14.5px}
+.logo,.ag .av{background:#f5c84c;color:#2b2620;border-radius:12px;box-shadow:inset 0 -3px 0 rgba(0,0,0,.08)}
+.ag .av{border-radius:9px}
+.top h1{font-family:var(--f-doc);font-weight:600;font-size:1.55rem;letter-spacing:-.01em}
+/* Sổ: cột bước bên trái, trang ghi chú ở giữa, tờ bio bên phải */
+.app{display:grid;grid-template-columns:212px minmax(0,1fr);grid-template-areas:"side main" "side nav";border-radius:16px}
+.steps{grid-area:side;display:flex;flex-direction:column;gap:2px;padding:18px 10px;border-bottom:0;border-right:1px solid var(--line);background:var(--sunk);overflow:visible}
+.panes{grid-area:main}
+.nav{grid-area:nav}
+.st{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;min-width:0;font-size:.84rem;color:var(--muted)}
+.st .seg{flex:none;width:17px;height:17px;border-radius:50%;border:1.5px solid var(--line-2);background:transparent no-repeat center/10px}
+.st .lb{gap:8px}
+.st .n{display:none}
+.st.done{color:var(--fg)}
+.st.done .seg{background-color:var(--ink);border-color:var(--ink);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M1.5 5.3l2.3 2.3L8.5 2.6' fill='none' stroke='%23fffdf8' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+.st.cur{background:var(--surface);color:var(--fg);box-shadow:var(--shadow-sm)}
+.st.cur .seg{border-color:var(--accent);background:radial-gradient(circle,var(--accent) 0 4px,transparent 4.5px)}
+.left{padding:30px 32px;gap:18px}
+.right{background:var(--desk);padding:30px}
+.sh .k{color:var(--dim);font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:.7rem}
+.sh .k::before{display:none}
+.sh h2{font-family:var(--f-doc);font-weight:600;font-size:1.9rem;letter-spacing:-.015em;line-height:1.15}
+/* Lời agent như một mảnh giấy nhớ */
+.ag p{background:var(--note);color:var(--note-fg);border:0;border-radius:3px 12px 12px 12px;padding:12px 16px;box-shadow:0 1px 0 rgba(0,0,0,.04),0 8px 18px -14px rgba(90,70,10,.45)}
+.card{border-radius:14px;box-shadow:none;border-color:var(--line)}
+.card-t{font-family:var(--f-doc);font-weight:600;font-size:1.08rem}
+.card-t span{font-family:var(--f)}
+.ql{font-weight:600}
+.ql .hd{background:transparent;border:0;padding:0;margin-right:8px;color:var(--accent-fg);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase}
+.o{border-radius:14px;padding:9px 14px 9px 11px;background:var(--surface)}
+.t-ok{background:var(--g);color:var(--g-fg)}
+.o:hover{border-color:var(--accent)}
+.o.on{background:var(--accent-soft);border-color:var(--accent);box-shadow:none}
+.o.on::before{background-color:var(--ink);border-color:var(--ink)}
+.single .o.on::before{background:var(--ink);box-shadow:inset 0 0 0 3px var(--accent-soft)}
+.r{background:var(--ink);color:var(--on-ink);border-radius:999px}
+input.tx,textarea,textarea.tx{background:var(--surface);border-color:var(--line-2)}
+input.tx:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+/* Ô nhiều dòng có kẻ dòng như trang vở */
+textarea{line-height:26px;padding:6px 14px;background-image:linear-gradient(transparent 25px,var(--line) 25px,var(--line) 26px,transparent 26px);background-size:100% 26px;background-attachment:local;background-position:0 6px}
+.drop{border-color:var(--line-2);background:var(--sunk)}
+.drop .ic{color:var(--accent-fg);background:var(--note);border:0}
+.mode{border-radius:999px}
+.mode button{border-radius:999px}
+.pj{background:var(--sunk);border-style:dashed}
+.aiprev{border-left-color:var(--accent);background:var(--note);color:var(--note-fg);border-color:transparent}
+.aiprev .k2{color:var(--note-fg);opacity:.75}
+.btn{border-radius:999px;height:42px;padding:0 20px}
+.btn.sm{border-radius:999px}
+.btn.accent{background:#f5c84c;border-color:#f5c84c;color:#2b2620}
+.btn.accent:hover{background:#efbb2c}
+.busy{border-style:dashed}
+.busy .sp{border-top-color:var(--accent)}
+.lang{border-radius:999px}
+.lang button{border-radius:999px}
+/* Tờ bio: giấy trắng có băng dính giữ ở mép trên */
+.doc{position:relative;border-radius:4px;border-color:var(--line);padding:42px 42px 38px}
+.doc::before{content:"";position:absolute;top:-11px;left:50%;width:96px;height:22px;transform:translateX(-50%) rotate(-2deg);background:rgba(245,200,76,.55);border-radius:2px}
+.doc h2,.doc h4{font-family:var(--f-doc)}
+.doc h2{font-weight:600;font-size:1.85rem;letter-spacing:-.01em}
+.doc h3{color:var(--accent-fg)}
+.doc.empty::before{display:none}
+.menu{border-radius:14px}
+@media (max-width:900px){
+  .app{grid-template-columns:minmax(0,1fr);grid-template-areas:"side" "main" "nav"}
+  .steps{flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line);padding:10px}
+  .st{flex:none}
+  .left{padding:22px 20px}
+}
+@media (max-width:520px){.left,.right{padding:16px}.doc{padding:30px 18px}}
 </style>
 
 <div class="wrap">
@@ -786,7 +876,6 @@ const stepPos=()=>{const v=visibleSteps();return `Bước ${v.indexOf(S.step)+1}
 function render(){
   // Bước không cần (không phải hỏi thêm, vị trí đã khớp, không có JD, không có dự án) bị ẩn khỏi thanh bước.
   const vis=visibleSteps();
-  $('#steps').style.gridTemplateColumns=`repeat(${vis.length},minmax(92px,1fr))`;
   $('#steps').innerHTML=vis.map((k,i)=>`<div class="st ${k===S.step?'cur':k<S.step?'done':''}"${k===S.step?' aria-current="step"':''}><span class="seg"></span><span class="lb"><span class="n">${String(i+1).padStart(2,'0')}</span>${NAMES[k]}</span></div>`).join('');
   $('#left').innerHTML=`<div class="fade" style="display:flex;flex-direction:column;gap:16px">${leftHTML()}</div>`;
   paintPreview();

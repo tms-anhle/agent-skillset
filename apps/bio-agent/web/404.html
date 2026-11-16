@@ -7,16 +7,16 @@
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <title>Không tìm thấy trang · Short Bio Agent</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap">
 <style>
 /* Cùng bảng màu với template.html của Short Bio Agent */
 :root{
-  --bg:#f3f2ee; --surface:#ffffff; --sunk:#f6f5f1; --line:#e4e1d9; --line-2:#d2cec3;
+  --bg:#f4f1e9; --surface:#fffdf8; --sunk:#f8f5ec; --line:#e9e2d2; --line-2:#d9d0bb;
   --ink:#1b2230; --ink-2:#2c3546; --on-ink:#ffffff; --fg:#1b2230; --muted:#5e6472; --dim:#8d919b;
-  --accent:#0c7a64; --accent-soft:#e1f2ec; --accent-fg:#0a5f4e;
+  --accent:#c98f00; --accent-soft:#fde9a6; --accent-fg:#7d5800;
   --shadow:0 1px 2px rgba(27,34,48,.05),0 12px 32px -16px rgba(27,34,48,.22);
-  --f:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --f-doc:"Source Serif 4",Georgia,serif;
+  --f:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-doc:"Newsreader",Georgia,serif;
   color-scheme:light;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
@@ -37,10 +37,10 @@ main{width:min(460px,100%);display:grid;gap:22px;justify-items:center;text-align
 .sheet i:first-child{height:12px;width:70%;background:var(--line-2)}
 .sheet b{position:absolute;right:-18px;bottom:-14px;font:600 2.4rem/1 var(--f-doc);color:var(--accent);background:var(--accent-soft);border-radius:12px;padding:8px 12px;transform:rotate(4deg)}
 .k{font-size:.74rem;font-weight:700;color:var(--accent-fg);letter-spacing:.06em;text-transform:uppercase}
-h1{margin:4px 0 0;font-size:1.6rem;font-weight:800;letter-spacing:-.025em;line-height:1.2}
+h1{margin:4px 0 0;font-family:var(--f-doc);font-size:2rem;font-weight:600;letter-spacing:-.025em;line-height:1.2}
 p{margin:0;color:var(--muted)}
 .actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-.btn{display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 20px;border-radius:11px;font:700 .9rem var(--f);text-decoration:none;border:1px solid var(--ink);background:var(--ink);color:var(--on-ink);transition:transform .12s,background .15s}
+.btn{display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 20px;border-radius:999px;font:700 .9rem var(--f);text-decoration:none;border:1px solid var(--ink);background:var(--ink);color:var(--on-ink);transition:transform .12s,background .15s}
 .btn:hover{background:var(--ink-2);transform:translateY(-1px)}
 .btn.ghost{background:var(--surface);color:var(--fg);border-color:var(--line-2)}
 .btn.ghost:hover{background:var(--sunk)}
