@@ -14,6 +14,7 @@ Giao diện web cho skill [`generate-short-bio`](../../generate-short-bio/). Cù
 | `template.html` | Giao diện + flow 8 bước; chỗ `"__SKILL__"` được thay bằng nội dung skill khi build |
 | `build.mjs` | Nhúng `SKILL.md` + `references/` vào template. `node build.mjs` → `bio-agent.html`; `node build.mjs web` → `web/public/index.html` |
 | `web/404.html`, `web/favicon.svg` | Trang "Không tìm thấy trang" và favicon, build chép vào `public/` |
+| `web/demo.js` | Chế độ xem mẫu: mở `/?demo` để xem giao diện từng bước bằng dữ liệu giả, không cần mã, không gọi AI |
 | `web/runtime.js` | Bản web: thay `window.claude` của artifact bằng API server, màn hình nhập mã, lịch sử localStorage |
 | `web/api/sample.js` | Kiểm tra mã và lượt dùng, chọn AI theo `AI_PROVIDER`, stream kết quả về trang |
 | `web/api/_claude.js`, `web/api/_gemini.js` | Gọi Claude (`ANTHROPIC_API_KEY`) hoặc Gemini (`GEMINI_API_KEY`) |

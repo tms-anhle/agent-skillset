@@ -63,7 +63,7 @@
     setTimeout(function () { gate.querySelector("input").focus(); }, 0);
   }
   // Chỉ hỏi mã khi máy này chưa có mã; mã sai hoặc bị thu hồi thì sample() tự mở lại hộp nhập.
-  function boot() { if (!store.get(CODE_KEY)) showGate(""); }
+  function boot() { if (!store.get(CODE_KEY) && !/[?&]demo\b/.test(location.search)) showGate(""); } // ?demo: chế độ xem mẫu, không cần mã
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
 
   /* ---------- gọi Claude qua server ---------- */

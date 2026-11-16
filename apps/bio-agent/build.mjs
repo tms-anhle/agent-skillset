@@ -46,7 +46,10 @@ if (target === "web") {
     '<link rel="icon" href="/favicon.svg" type="image/svg+xml">' +
     // Reset mà claude.ai tự chèn cho artifact; thiếu nó thì [hidden] không ẩn được phần tử có display riêng.
     "<style>body{margin:0}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>" +
-    "</head><body>\n" + out + "</body></html>\n";
+    "</head><body>\n" + out +
+    // Chế độ xem mẫu (?demo): chỉ chạy khi URL có ?demo, xem web/demo.js
+    "<script>\n" + readFileSync(join(here, "web", "demo.js"), "utf8").replaceAll("</", "<\\/") + "\n</script>\n" +
+    "</body></html>\n";
   mkdirSync(join(here, "web", "public"), { recursive: true });
   dest = join(here, "web", "public", "index.html");
   // Vercel tự trả public/404.html cho đường dẫn không tồn tại.
