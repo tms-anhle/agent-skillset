@@ -55,7 +55,7 @@ export async function POST(request) {
         if (!abort.signal.aborted) {
           console.error(name, err);
           // Kèm mã HTTP và loại lỗi (không có nội dung nhạy cảm) để chẩn đoán từ trình duyệt.
-          send({ error: err.code || "upstream_error", provider: name, status: err.status ?? null, type: err.type ?? err.name ?? null });
+          send({ error: err.code || "upstream_error", provider: name, status: err.status ?? null, type: err.type ?? err.name ?? null, model: err.model ?? null, detail: err.detail ?? null });
         }
       }
       ctrl.close();

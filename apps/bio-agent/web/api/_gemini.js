@@ -50,7 +50,8 @@ export async function runGemini(prompt, signal, onDelta) {
       : /API key/i.test(body?.error?.message || "") || res.status === 401 || res.status === 403 ? "bad_key"
       : res.status === 400 && /token/i.test(body?.error?.message || "") ? "too_large"
       : "upstream_error";
-    throw Object.assign(new Error(body?.error?.message || `HTTP ${res.status}`), { code, status: res.status, type });
+    // detail: thông báo lỗi của Google (không chứa key), giúp biết sai model hay sai tham số
+    throw Object.assign(new Error(body?.error?.message || `HTTP ${res.status}`), { code, status: res.status, type, detail: String(body?.error?.message || "").slice(0, 300), model: MODEL });
   }
 
   const reader = res.body.getReader();
