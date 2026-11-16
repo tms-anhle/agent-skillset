@@ -1,7 +1,8 @@
 // Gọi Google Gemini (REST streamGenerateContent, SSE) và stream text qua onDelta.
 // Key lấy ở aistudio.google.com. Gói miễn phí giới hạn số lần gọi và có thể dùng dữ liệu
 // để cải thiện mô hình: chỉ nên thử bằng dữ liệu giả lập.
-const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+// Dọn giá trị nhập tay: khoảng trắng, dấu nháy, dấu phẩy / chấm thừa, tiền tố "models/".
+const MODEL = (process.env.GEMINI_MODEL || "").trim().replace(/^["']+|["',;.\s]+$/g, "").replace(/^models\//, "") || "gemini-2.5-flash";
 const BASE = process.env.GEMINI_BASE_URL || "https://generativelanguage.googleapis.com/v1beta/models";
 
 const STOP = { STOP: "end_turn", MAX_TOKENS: "max_tokens" }; // còn lại (SAFETY, RECITATION...) coi là từ chối
