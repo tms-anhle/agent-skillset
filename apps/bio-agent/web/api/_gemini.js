@@ -6,8 +6,8 @@ const BASE = process.env.GEMINI_BASE_URL || "https://generativelanguage.googleap
 
 const STOP = { STOP: "end_turn", MAX_TOKENS: "max_tokens" }; // còn lại (SAFETY, RECITATION...) coi là từ chối
 
-export async function runGemini(prompt, signal, onDelta) {
-  const res = await fetch(`${BASE}/${encodeURIComponent(MODEL)}:streamGenerateContent?alt=sse`, {
+const call = (prompt, signal) =>
+  fetch(`${BASE}/${encodeURIComponent(MODEL)}:streamGenerateContent?alt=sse`, {
     method: "POST",
     headers: { "content-type": "application/json", "x-goog-api-key": process.env.GEMINI_API_KEY },
     body: JSON.stringify({
@@ -16,11 +16,37 @@ export async function runGemini(prompt, signal, onDelta) {
     }),
     signal,
   });
+
+// Gói miễn phí giới hạn theo phút và theo ngày. Lỗi 429 có RetryInfo.retryDelay (VD "23s"):
+// giới hạn theo phút thì chờ rồi thử lại tối đa 2 lần; hết hạn mức ngày thì báo quota_day.
+const retryDelay = (body) => {
+  const d = (body?.error?.details || []).find((x) => /RetryInfo/.test(x?.["@type"] || ""))?.retryDelay;
+  const s = parseFloat(String(d || ""));
+  return Number.isFinite(s) ? s : null;
+};
+const isDaily = (body) => /per ?day|PerDay|requests_per_day|daily/i.test(JSON.stringify(body?.error || {}));
+const sleep = (ms, signal) => new Promise((ok, no) => {
+  const t = setTimeout(ok, ms);
+  signal?.addEventListener("abort", () => { clearTimeout(t); no(Object.assign(new Error("aborted"), { name: "AbortError" })); });
+});
+
+export async function runGemini(prompt, signal, onDelta) {
+  let res, body;
+  for (let attempt = 0; ; attempt++) {
+    res = await call(prompt, signal);
+    if (res.ok) break;
+    body = await res.json().catch(() => ({}));
+    const wait = retryDelay(body);
+    if (res.status === 429 && !isDaily(body) && attempt < 2) {
+      await sleep(Math.min(Math.max(wait ?? 20, 5), 60) * 1000, signal);
+      continue;
+    }
+    break;
+  }
   if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
     const type = body?.error?.status || null; // VD INVALID_ARGUMENT, RESOURCE_EXHAUSTED
     const code =
-      res.status === 429 ? "rate_limited"
+      res.status === 429 ? (isDaily(body) ? "quota_day" : "rate_limited")
       : /API key/i.test(body?.error?.message || "") || res.status === 401 || res.status === 403 ? "bad_key"
       : res.status === 400 && /token/i.test(body?.error?.message || "") ? "too_large"
       : "upstream_error";

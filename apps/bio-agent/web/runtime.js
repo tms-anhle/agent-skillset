@@ -16,6 +16,7 @@
     bad_code: "Mã truy cập không đúng hoặc đã bị thu hồi. Bạn nhập lại mã nhé.",
     no_codes_configured: "Máy chủ chưa có mã truy cập nào (biến ACCESS_CODES trống hoặc chưa redeploy). Báo người quản trị nhé.",
     quota: "Mã truy cập này đã hết lượt hôm nay. Thử lại vào ngày mai hoặc liên hệ người cấp mã.",
+    quota_day: "AI trên máy chủ đã dùng hết hạn mức miễn phí của hôm nay. Thử lại vào ngày mai, hoặc báo người quản trị chuyển sang key trả phí.",
     too_large: "CV hoặc JD quá dài. Hãy rút gọn rồi thử lại.",
     missing_key: "Máy chủ chưa có API key (ANTHROPIC_API_KEY hoặc GEMINI_API_KEY). Báo người quản trị nhé.",
     bad_key: "API key trên máy chủ không hợp lệ hoặc hết hạn mức. Báo người quản trị nhé.",
