@@ -689,7 +689,7 @@ function aiPreview(){if(!AI_INFO.lines.length)return '';
   return `<div class="aiprev"><b>Sẽ thêm vào bio của bạn:</b><span class="k2">Core Skills, 2 dòng</span>${AI_INFO.lines.map(l=>{const i=l.indexOf(':');return `<div class="kv"><b>${esc(l.slice(0,i+1))}</b>${esc(l.slice(i+1))}</div>`}).join('')}${AI_INFO.para?`<span class="k2">Cuối Short Bio, 1 đoạn (không thêm cho vị trí QA)</span><blockquote>${esc(AI_INFO.para)}</blockquote>`:''}<small>Đây là nội dung mẫu chung. Bạn dùng công cụ khác thì ghi vào ô bên dưới, hoặc sửa trong file sau khi tải về.</small></div>`}
 function cleanQs(qs,key){return (qs||[]).map(q=>{q={...q};
   // Câu email hỏi "có phải là x@y không?" mà thiếu lựa chọn email đó → thêm lựa chọn đề xuất để member chỉ cần bấm.
-  if(qfmt(q)==='email'){const em=(String(q.question||'').match(/[^\s@"'“”()]+@[^\s@"'“”()]+\.[a-z]{2,}/i)||[])[0];
+  if(qfmt(q)==='email'){const em=(String([q.question,q.hint,q.placeholder].filter(Boolean).join(' ')).match(/[^\s@"'“”()]+@[^\s@"'“”()]+\.[a-z]{2,}/i)||[])[0];
     if(em&&!(q.options||[]).some(o=>String(o.label).includes(em))){q.type='choice';q.options=[{label:em,description:'Email đề xuất từ họ tên của bạn',recommended:true},...(q.options||[])];q.otherHint=q.otherHint||'Email khác của bạn'}}
   // Câu AI: không bắt buộc, "Có" là lựa chọn đề xuất (collect-info.md §5 mục 1b).
   if(isAIQ(q)&&q.options){q.required=false;if(!q.options.some(o=>o.recommended)){const y=q.options.find(o=>isYes(o.label));if(y)y.recommended=true}}
